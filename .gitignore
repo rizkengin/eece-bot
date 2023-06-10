@@ -477,3 +477,16 @@ $RECYCLE.BIN/
 *.lnk
 .idea/*
 .vscode/*
+
+/shelf/
+/workspace.xml
+# Rider ignored files
+/modules.xml
+/contentModel.xml
+/projectSettingsUpdater.xml
+/.idea.EECEBOT.iml
+# Editor-based HTTP Client requests
+/httpRequests/
+# Datasource local storage ignored files
+/dataSources/
+/dataSources.local.xml

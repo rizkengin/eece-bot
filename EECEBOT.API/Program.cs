@@ -8,10 +8,7 @@ var host = new HostBuilder()
     .ConfigureFunctionsWorkerDefaults()
     .ConfigureAppConfiguration(builder =>
     {
-        var config = builder.AddEnvironmentVariables()
-            .AddJsonFile("local.settings.json", optional: true, reloadOnChange: true)
-            .Build();
-        var keyVaultUrl = new Uri(Environment.GetEnvironmentVariable("AzureKeyVaultUrl")!); // Make sure this is set in system environment variables
+        var keyVaultUrl = new Uri(Environment.GetEnvironmentVariable("eece_bot_azure_key_vault_url")!); // Make sure this is set in system environment variables
         var azureCredentials = new DefaultAzureCredential();
         builder.AddAzureKeyVault(keyVaultUrl, azureCredentials);
     })
