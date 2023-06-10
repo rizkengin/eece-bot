@@ -475,13 +475,5 @@ $RECYCLE.BIN/
 
 # Windows shortcuts
 *.lnk
-.vscode/tasks.json
-.vscode/settings.json
-.vscode/launch.json
-.vscode/extensions.json
-.idea/.idea.EECEBOT/.idea/indexLayout.xml
-.idea/.idea.EECEBOT/.idea/encodings.xml
-.idea/.idea.EECEBOT/.idea/aws.xml
-.idea/.idea.EECEBOT/.idea/projectSettingsUpdater.xml
-.idea/.idea.EECEBOT/.idea/workspace.xml
-.idea/.idea.EECEBOT/.idea/vcs.xml
+.idea/*
+.vscode/*
