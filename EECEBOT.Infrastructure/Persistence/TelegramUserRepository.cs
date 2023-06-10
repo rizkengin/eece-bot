@@ -20,7 +20,7 @@ public class TelegramUserRepository : ITelegramUserRepository
         await _documentSession.SaveChangesAsync(cancellationToken);
     }
 
-    public async Task<TelegramUser?> GetByChatIdAsync(long chatId, CancellationToken cancellationToken)
+    public async Task<TelegramUser?> GetByChatIdAsync(long chatId, CancellationToken cancellationToken = default)
     {
         return await _documentSession.Query<TelegramUser>().FirstOrDefaultAsync(x => x.ChatId == chatId,
             cancellationToken);

@@ -33,7 +33,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         
         await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
             callbackQuery.Message.MessageId,
-            "<b>Please choose your group. 🧑‍🤝‍🧑</b>", 
+            @"<b>Please choose your group. 🧑‍🤝‍🧑</b>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
@@ -52,7 +52,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         
         await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
             callbackQuery.Message.MessageId,
-            "<b>Please choose your group. 🧑‍🤝‍🧑</b>", 
+            @"<b>Please choose your group. 🧑‍🤝‍🧑</b>", 
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);

@@ -1,8 +1,8 @@
 ﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using Telegram.Bot;
-using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
 
 namespace EECEBOT.Application.TelegramBot.Queries.UnknownUpdateQuery;
 
@@ -31,25 +31,10 @@ public sealed class UnknownUpdateQueryHandler : IRequestHandler<UnknownUpdateQue
             UpdateType.PreCheckoutQuery => request.Update.PreCheckoutQuery!.From.Id,
             UpdateType.InlineQuery => request.Update.InlineQuery!.From.Id,
             UpdateType.ChosenInlineResult => request.Update.ChosenInlineResult!.From.Id,
-            _ => ""
-        }, """<span class="tg-spoiler"><b>Fuck OFF!</b></span>""",
+            _ => throw new ArgumentOutOfRangeException(nameof(request), request.Update.Type, null)
+        }, "<b>Unknown input! Please try the /help command to view the list of available commands.</b>",
+            replyMarkup: new ReplyKeyboardRemove(),
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
-
-        await _telegramBotClient.SendAnimationAsync(request.Update.Type switch
-            {
-                UpdateType.EditedMessage => request.Update.EditedMessage!.Chat.Id,
-                UpdateType.CallbackQuery => request.Update.CallbackQuery!.Message!.Chat.Id,
-                UpdateType.ChannelPost => request.Update.ChannelPost!.Chat.Id,
-                UpdateType.EditedChannelPost => request.Update.EditedChannelPost!.Chat.Id,
-                UpdateType.ShippingQuery => request.Update.ShippingQuery!.From.Id,
-                UpdateType.PreCheckoutQuery => request.Update.PreCheckoutQuery!.From.Id,
-                UpdateType.InlineQuery => request.Update.InlineQuery!.From.Id,
-                UpdateType.ChosenInlineResult => request.Update.ChosenInlineResult!.From.Id,
-                _ => ""
-            },
-            new InputFileUrl("https://cdn.discordapp.com/attachments/651180020580220938/1115910276638838824/HahaMickaelJacksonGIF.gif"),
-            cancellationToken: cancellationToken
-        );
     }
 }

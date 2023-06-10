@@ -208,8 +208,9 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleUnknownInput(Message message, CancellationToken cancellationToken)
     {
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "Unknown input! Please try the /help command to view the list of available commands.",
+            "<b>Unknown input! Please try the /help command to view the list of available commands.</b>",
             replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
 }

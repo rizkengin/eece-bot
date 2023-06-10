@@ -22,7 +22,7 @@ public class CallbackQueryQueryHandler : IRequestHandler<CallbackQueryQuery>
             TelegramCallbackQueryData.LabSchedule => _telegramBotCallbackQueryDataHandler.HandleLabScheduleDataAsync(request.CallbackQuery, cancellationToken),
             TelegramCallbackQueryData.GroupA => _telegramBotCallbackQueryDataHandler.HandleGroupADataAsync(request.CallbackQuery, cancellationToken),
             TelegramCallbackQueryData.GroupB => _telegramBotCallbackQueryDataHandler.HandleGroupBDataAsync(request.CallbackQuery, cancellationToken),
-            _ => throw new ArgumentOutOfRangeException(nameof(request.CallbackQuery.Data), request.CallbackQuery.Data, null)
+            _ => throw new ArgumentOutOfRangeException(nameof(request), request.CallbackQuery.Data, null)
         };
         
         await handler;

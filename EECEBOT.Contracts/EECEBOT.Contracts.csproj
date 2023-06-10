@@ -10,4 +10,11 @@
       <ProjectReference Include="..\EECEBOT.Domain\EECEBOT.Domain.csproj" />
     </ItemGroup>
 
+    <ItemGroup>
+      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
+        <PrivateAssets>all</PrivateAssets>
+        <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
+      </PackageReference>
+    </ItemGroup>
+
 </Project>
