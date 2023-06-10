@@ -2,7 +2,6 @@
     "IsEncrypted": false,
     "Values": {
         "AzureWebJobsStorage": "UseDevelopmentStorage=true",
-        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-        "AzureKeyVaultUrl" : "https://botkeyvaultdev2.vault.azure.net/"
+        "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated"
     }
 }
