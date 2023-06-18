@@ -1,5 +1,6 @@
 ﻿using System.Text;
 using EECEBOT.Application.Common;
+using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.Common;
 using EECEBOT.Domain.Deadline;
@@ -18,11 +19,18 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 {
     private readonly ITelegramBotClient _botClient;
     private readonly IQuerySession _querySession;
+    private readonly ITelegramUserRepository _telegramUserRepository;
+    private readonly IUnitOfWork _unitOfWork;
 
-    public TelegramBotMessageHandler(ITelegramBotClient botClient, IQuerySession querySession)
+    public TelegramBotMessageHandler(ITelegramBotClient botClient,
+        IQuerySession querySession,
+        IUnitOfWork unitOfWork,
+        ITelegramUserRepository telegramUserRepository)
     {
         _botClient = botClient;
         _querySession = querySession;
+        _unitOfWork = unitOfWork;
+        _telegramUserRepository = telegramUserRepository;
     }
 
     public async Task HandleStartFlow(Message message, CancellationToken cancellationToken)
@@ -39,8 +47,9 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         };
             
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "Welcome to EECE BOT! Please select your year group from the keyboard below.",
+            "<b>Welcome to EECE BOT! Please select your academic year from the keyboard below. 🎓</b>",
             replyMarkup: keyboard,
+            parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
         
         await _botClient.SendStickerAsync(message.Chat.Id,
@@ -48,7 +57,36 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
             cancellationToken: cancellationToken);
     }
 
-    public async Task HandlePickingStudyYearError(Message message, CancellationToken cancellationToken)
+    public async Task HandlePickingSectionFlow(Message message, CancellationToken cancellationToken)
+    {
+        var keyboard = new ReplyKeyboardMarkup(new[]
+        {
+            new KeyboardButton[] {"Section 1"},
+            new KeyboardButton[] {"Section 2"},
+            new KeyboardButton[] {"Section 3"},
+            new KeyboardButton[] {"Section 4"}
+        })
+        {
+            ResizeKeyboard = true
+        };
+            
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Please select your section from the keyboard below. 🎓</b>",
+            replyMarkup: keyboard,
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandlePickingBenchNumberFlow(Message message, CancellationToken cancellationToken)
+    {
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Please enter your bench number. 🎓</b>",
+            parseMode: ParseMode.Html,
+            replyMarkup: new ReplyKeyboardRemove(),
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandlePickingAcademicYearError(Message message, CancellationToken cancellationToken)
     {
         var keyboard = new ReplyKeyboardMarkup(new[]
         {
@@ -62,8 +100,38 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         };
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "Wrong Input! Please select your year group from the keyboard below.",
+            "<b>Wrong Input! Please select your study year from the keyboard below.</b>",
             replyMarkup: keyboard,
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandlePickingSectionFlowError(Message message, CancellationToken cancellationToken)
+    {
+        var keyboard = new ReplyKeyboardMarkup(new[]
+        {
+            new KeyboardButton[] {"Section 1"},
+            new KeyboardButton[] {"Section 2"},
+            new KeyboardButton[] {"Section 3"},
+            new KeyboardButton[] {"Section 4"}
+        })
+        {
+            ResizeKeyboard = true
+        };
+        
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Wrong Input! Please select your section from the keyboard below.</b>",
+            replyMarkup: keyboard,
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandlePickingBenchNumberFlowError(Message message, CancellationToken cancellationToken)
+    {
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Wrong Input! Please enter your bench number.</b>",
+            parseMode: ParseMode.Html,
+            replyMarkup: new ReplyKeyboardRemove(),
             cancellationToken: cancellationToken);
     }
 
@@ -88,18 +156,19 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleExamsCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         var exams = _querySession.Query<Exam>()
-            .Where(x=> x.StudyYear == user.StudyYear)
+            .Where(x=> x.AcademicYear == user.AcademicYear)
             .ToList();
 
         if (exams.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "You have no exams scheduled yet!",
+                "<b>You have no exams scheduled yet!</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(message.Chat.Id,
-                new InputFileId(TelegramStickers.NoExamsSticker),
+                new InputFileId(TelegramStickers.HappyDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -123,18 +192,19 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleDeadlinesCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         var deadlines = _querySession.Query<Deadline>()
-            .Where(x=> x.StudyYear == user.StudyYear)
+            .Where(x=> x.AcademicYear == user.AcademicYear)
             .ToList();
 
         if (deadlines.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "You have no deadlines yet!",
+                "<b>You have no deadlines yet!</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(message.Chat.Id,
-                new InputFileId(TelegramStickers.NoDeadlinesSticker),
+                new InputFileId(TelegramStickers.HappyDogSticker),
                 replyMarkup: new ReplyKeyboardRemove(),
                 cancellationToken: cancellationToken);
             
@@ -153,6 +223,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         await _botClient.SendTextMessageAsync(message.Chat.Id,
             deadlinesMessage.ToString(),
             replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
 
@@ -165,6 +236,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
             "/exams - to view your exams. 📃\n" +
             "/deadlines - to view your deadlines. ⛔\n" +
             "/links - to view useful links. 🔗\n" +
+            "/reset - to reset your academic year. 🔄\n" +
             "/help - to view this message again. 🆘\n\n" +
             "If you have any questions or suggestions, please contact @rizkengin 💖</b>",
             replyMarkup: new ReplyKeyboardRemove(),
@@ -175,18 +247,19 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleLinksCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         var links = _querySession.Query<Link>()
-            .Where(x=> x.StudyYear == user.StudyYear)
+            .Where(x=> x.AcademicYear == user.AcademicYear)
             .ToList();
 
         if (links.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "You have no links yet!",
+                "<b>There are no links available for your academic year yet!</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(message.Chat.Id,
-                new InputFileId(TelegramStickers.NoLinksSticker),
+                new InputFileId(TelegramStickers.HappyDogSticker),
                 replyMarkup: new ReplyKeyboardRemove(),
                 cancellationToken: cancellationToken);
         }
@@ -202,6 +275,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         await _botClient.SendTextMessageAsync(message.Chat.Id,
             linksMessage.ToString(),
             replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
 
@@ -210,6 +284,36 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         await _botClient.SendTextMessageAsync(message.Chat.Id,
             "<b>Unknown input! Please try the /help command to view the list of available commands.</b>",
             replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleResetCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
+    {
+        _telegramUserRepository.ResetAcademicYear(user);
+
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
+        
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Your academic year has been reset successfully! 🎉</b>",
+            replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+        
+        var keyboard = new ReplyKeyboardMarkup(new[]
+        {
+            new KeyboardButton[] {"1st year"},
+            new KeyboardButton[] {"2nd year"},
+            new KeyboardButton[] {"3rd year"},
+            new KeyboardButton[] {"4th year"}
+        })
+        {
+            ResizeKeyboard = true
+        };
+        
+        await _botClient.SendTextMessageAsync(message.Chat.Id,
+            "<b>Please select your academic year. 🎓</b>",
+            replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }

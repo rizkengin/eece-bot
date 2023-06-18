@@ -1,12 +1,15 @@
 ﻿using EECEBOT.Application.Common.Persistence;
+using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.Exam;
+using EECEBOT.Domain.LabSchedule;
 using EECEBOT.Domain.Link;
 using EECEBOT.Domain.Schedule;
 using EECEBOT.Domain.Schedule.Entities;
 using EECEBOT.Domain.TelegramUser;
 using EECEBOT.Domain.User;
 using EECEBOT.Infrastructure.Persistence;
+using EECEBOT.Infrastructure.Services;
 using EECEBOT.Infrastructure.TelegramBot;
 using Marten;
 using Microsoft.Extensions.Configuration;
@@ -21,6 +24,10 @@ public static class DependencyInjection
         services.AddScoped<ITelegramBotMessageHandler, TelegramBotMessageHandler>();
         services.AddScoped<ITelegramUserRepository, TelegramUserRepository>();
         services.AddScoped<ITelegramBotCallbackQueryDataHandler, TelegramBotCallbackQueryDataHandler>();
+        services.AddScoped<ILabScheduleRepository, LabScheduleRepository>();
+        services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddScoped<ITimeService,TimeService>();
+        services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddPersistence(configuration);
         
         return services;
@@ -50,6 +57,9 @@ public static class DependencyInjection
                 .Identity(x => x.Id);
 
             options.Schema.For<Schedule>()
+                .Identity(x => x.Id);
+
+            options.Schema.For<LabSchedule>()
                 .Identity(x => x.Id);
         }).UseLightweightSessions()
             .ApplyAllDatabaseChangesOnStartup()

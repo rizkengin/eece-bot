@@ -11,7 +11,7 @@ public class Exam
         ExamType type,
         string description,
         DateTime date,
-        StudyYear studyYear,
+        AcademicYear academicYear,
         string? location)
     {
         Id = id;
@@ -20,7 +20,7 @@ public class Exam
         Description = description;
         Location = location;
         Date = date;
-        StudyYear = studyYear;
+        AcademicYear = academicYear;
     }
     public Guid Id { get; private set; }
     public string Name { get; private set; }
@@ -28,12 +28,12 @@ public class Exam
     public string Description { get; private set; }
     public string? Location { get; private set; }
     public DateTime Date { get; private set; }
-    public StudyYear StudyYear { get; private set; }
+    public AcademicYear AcademicYear { get; private set; }
     
     public static Exam Create(string name,
         ExamType type,
         string description,
         DateTime date,
-        StudyYear studyYear,
-        string? location = null) => new Exam(Guid.NewGuid(), name, type, description, date, studyYear, location);
+        AcademicYear academicYear,
+        string? location = null) => new Exam(Guid.NewGuid(), name, type, description, date, academicYear, location);
 }

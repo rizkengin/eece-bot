@@ -3,7 +3,9 @@
 public enum CurrentState
 {
     None,
-    PickingStudyYear,
+    PickingAcademicYear,
+    PickingSection,
+    PickingBenchNumber
 }
 
 public static class CurrentStateExtensions
@@ -13,7 +15,9 @@ public static class CurrentStateExtensions
         return currentState switch
         {
             CurrentState.None => "None",
-            CurrentState.PickingStudyYear => "Picking study year",
+            CurrentState.PickingAcademicYear => "Picking academic year.",
+            CurrentState.PickingSection => "Picking section.",
+            CurrentState.PickingBenchNumber => "Picking bench number.",
             _ => throw new ArgumentOutOfRangeException(nameof(currentState), currentState, null)
         };
     }

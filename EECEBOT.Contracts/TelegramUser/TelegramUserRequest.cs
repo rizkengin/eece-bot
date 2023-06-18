@@ -7,4 +7,4 @@ public record TelegramUserRequest(
     string FirstName,
     string LastName,
     long ChatId,
-    StudyYear StudyYear);
+    AcademicYear AcademicYear);

@@ -10,20 +10,23 @@ public class Schedule
     
     [JsonConstructor]
     private Schedule(Guid id,
-        StudyYear studyYear)
+        AcademicYear academicYear)
     {
         Id = id;
-        StudyYear = studyYear;
+        AcademicYear = academicYear;
     }
     public Guid Id { get; private set; }
-    public StudyYear StudyYear { get; private set; }
+    public AcademicYear AcademicYear { get; private set; }
+    public Uri? FileUri { get; private set; }
     public IReadOnlyCollection<Session> Sessions => _sessions.AsReadOnly();
 
-    public static Schedule Create(StudyYear studyYear) => new(Guid.NewGuid(), studyYear);
+    public static Schedule Create(AcademicYear academicYear) => new(Guid.NewGuid(), academicYear);
     
     public void UpdateSessions(IEnumerable<Session> sessions)
     {
         _sessions.Clear();
         _sessions.AddRange(sessions);
     }
+    
+    public void UpdateFileUri(Uri fileUri) => FileUri = fileUri;
 }

@@ -2,10 +2,10 @@
 
 public enum Section
 {
-    Section1,
-    Section2,
-    Section3,
-    Section4
+    SectionOne,
+    SectionTwo,
+    SectionThree,
+    SectionFour
 }
 
 public static class SectionExtensions
@@ -14,10 +14,10 @@ public static class SectionExtensions
     {
         return section switch
         {
-            Section.Section1 => "Section 1",
-            Section.Section2 => "Section 2",
-            Section.Section3 => "Section 3",
-            Section.Section4 => "Section 4",
+            Section.SectionOne => "Section 1",
+            Section.SectionTwo => "Section 2",
+            Section.SectionThree => "Section 3",
+            Section.SectionFour => "Section 4",
             _ => throw new ArgumentOutOfRangeException(nameof(section), section, null)
         };
     }

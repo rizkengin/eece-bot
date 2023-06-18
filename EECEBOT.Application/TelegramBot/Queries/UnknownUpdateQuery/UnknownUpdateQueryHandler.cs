@@ -11,7 +11,8 @@ public sealed class UnknownUpdateQueryHandler : IRequestHandler<UnknownUpdateQue
     private readonly ILogger<UnknownUpdateQueryHandler> _logger;
     private readonly ITelegramBotClient _telegramBotClient;
 
-    public UnknownUpdateQueryHandler(ILogger<UnknownUpdateQueryHandler> logger, ITelegramBotClient telegramBotClient)
+    public UnknownUpdateQueryHandler(ILogger<UnknownUpdateQueryHandler> logger,
+        ITelegramBotClient telegramBotClient)
     {
         _logger = logger;
         _telegramBotClient = telegramBotClient;

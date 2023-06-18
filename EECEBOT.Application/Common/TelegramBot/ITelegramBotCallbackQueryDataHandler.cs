@@ -1,12 +1,16 @@
-﻿using Telegram.Bot.Types;
+﻿using EECEBOT.Domain.TelegramUser;
+using Telegram.Bot.Types;
 
 namespace EECEBOT.Application.Common.TelegramBot;
 
 public interface ITelegramBotCallbackQueryDataHandler
 {
-    Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken);
-    Task HandleLabScheduleDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken);
-    Task HandleMainMenuDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken);
-    Task HandleGroupADataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken);
-    Task HandleGroupBDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken);
+    Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleTodayNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleTomorrowNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleNormalScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleLabScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleScheduleMainMenuDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleMyNextLabDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
+    Task HandleLabScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken);
 }

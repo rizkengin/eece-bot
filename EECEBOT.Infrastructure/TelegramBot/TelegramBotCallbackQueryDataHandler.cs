@@ -1,5 +1,13 @@
-﻿using EECEBOT.Application.Common;
+﻿using System.Text;
+using EECEBOT.Application.Common;
+using EECEBOT.Application.Common.Persistence;
+using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
+using EECEBOT.Domain.Common;
+using EECEBOT.Domain.LabSchedule.Common;
+using EECEBOT.Domain.LabSchedule.ValueObjects;
+using EECEBOT.Domain.Schedule.Enums;
+using EECEBOT.Domain.TelegramUser;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -10,55 +18,240 @@ namespace EECEBOT.Infrastructure.TelegramBot;
 public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryDataHandler
 {
     private readonly ITelegramBotClient _botClient;
+    private readonly ILabScheduleRepository _labScheduleRepository;
+    private readonly IScheduleRepository _scheduleRepository;
+    private readonly ITimeService _timeService;
 
-    public TelegramBotCallbackQueryDataHandler(ITelegramBotClient botClient)
+    public TelegramBotCallbackQueryDataHandler(
+        ITelegramBotClient botClient,
+        ILabScheduleRepository labScheduleRepository,
+        ITimeService timeService,
+        IScheduleRepository scheduleRepository)
     {
         _botClient = botClient;
+        _labScheduleRepository = labScheduleRepository;
+        _timeService = timeService;
+        _scheduleRepository = scheduleRepository;
     }
 
-    public async Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    public async Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
         var keyboard = new InlineKeyboardMarkup(new[]
         {
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("Group A", TelegramCallbackQueryData.GroupA),
-                InlineKeyboardButton.WithCallbackData("Group B", TelegramCallbackQueryData.GroupB),
+                InlineKeyboardButton.WithCallbackData("Today's Schedule", TelegramCallbackQueryData.TodayNormalSchedule),
+                InlineKeyboardButton.WithCallbackData("Tomorrow's Schedule", TelegramCallbackQueryData.TomorrowNormalSchedule)
             },
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("🔙 Main Menu", TelegramCallbackQueryData.NormalScheduleMainMenu),
+                InlineKeyboardButton.WithCallbackData("Schedule file", TelegramCallbackQueryData.NormalScheduleFile)
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("🔙 Main Menu", TelegramCallbackQueryData.ScheduleMainMenu)
             }
         });
         
-        await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
-            callbackQuery.Message.MessageId,
-            @"<b>Please choose your group. 🧑‍🤝‍🧑</b>",
+        await _botClient.EditMessageTextAsync(user.ChatId,
+            callbackQuery.Message!.MessageId,
+            "<b>Please select the schedule you want to view. 📄</b>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
+    
+    public async Task HandleTodayNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
+    {
+        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
+        
+        if (schedule is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        var currentTime = _timeService.ConvertUtcToTimeZoneTime(_timeService.GetCurrentUtcTime(), TimeZoneIds.Egypt);
 
-    public async Task HandleLabScheduleDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+        if (currentTime is null)
+            return;
+
+        var todaySessions = schedule.Sessions
+            .Where(s => s.Sections.Contains((Section)user.Section!)
+                        && s.DayOfWeek == currentTime.Value.DayOfWeek)
+            .OrderBy(d => d.Period)
+            .ToList();
+
+        if (!todaySessions.Any())
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>You don't have any sessions today. 🎉</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.HappyDogSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        
+        var message = new StringBuilder();
+
+        foreach (var session in todaySessions)
+        {
+            message.Append($"<b><u>Period<u> {session.Period.ToFriendlyString()}</b>\n");
+            message.Append($"<b><u>Subject:<u> {session.Subject}</b>\n");
+            message.Append($"<b><u>Location:<u> {session.Location}</b>\n");
+            message.Append($"<b><u>Lecturer:<u> {session.Lecturer}</b>\n");
+            message.Append($"<b><u>Session Type:<u> {session.SessionType.ToString()}</b>\n");
+            message.Append($"<b><u>Session Frequency:<u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+        }
+        
+        await _botClient.SendTextMessageAsync(user.ChatId,
+            message.ToString(),
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+    
+    public async Task HandleTomorrowNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
+    {
+        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
+
+        if (schedule is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        var currentTime = _timeService.ConvertUtcToTimeZoneTime(_timeService.GetCurrentUtcTime(), TimeZoneIds.Egypt);
+
+        if (currentTime is null)
+            return;
+
+        var tomorrowSessions = schedule.Sessions
+            .Where(s => s.Sections.Contains((Section)user.Section!)
+                        && s.DayOfWeek == currentTime.Value.AddDays(1).DayOfWeek)
+            .OrderBy(d => d.Period)
+            .ToList();
+
+        if (!tomorrowSessions.Any())
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>You don't have any sessions today. 🎉</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.HappyDogSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        
+        var message = new StringBuilder();
+
+        foreach (var session in tomorrowSessions)
+        {
+            message.Append($"<b><u>Period<u> {session.Period.ToFriendlyString()}</b>\n");
+            message.Append($"<b><u>Subject:<u> {session.Subject}</b>\n");
+            message.Append($"<b><u>Location:<u> {session.Location}</b>\n");
+            message.Append($"<b><u>Lecturer:<u> {session.Lecturer}</b>\n");
+            message.Append($"<b><u>Session Type:<u> {session.SessionType.ToString()}</b>\n");
+            message.Append($"<b><u>Session Frequency:<u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+        }
+        
+        await _botClient.SendTextMessageAsync(user.ChatId,
+            message.ToString(),
+            parseMode: ParseMode.Html,
+            cancellationToken: cancellationToken);
+    }
+    
+    public async Task HandleNormalScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
+    {
+        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
+        
+        if (schedule is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+
+        if (schedule.FileUri is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule file is not yet uploaded by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        
+        await _botClient.SendChatActionAsync(user.ChatId,
+            ChatAction.UploadDocument,
+            cancellationToken: cancellationToken);
+        
+        await _botClient.SendDocumentAsync(user.ChatId,
+            new InputFileUrl(schedule.FileUri),
+            cancellationToken: cancellationToken);
+    }
+
+    public async Task HandleLabScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
         var keyboard = new InlineKeyboardMarkup(new[]
         {
             new[]
             {
-                InlineKeyboardButton.WithCallbackData("Group A", TelegramCallbackQueryData.GroupALab),
-                InlineKeyboardButton.WithCallbackData("Group B", TelegramCallbackQueryData.GroupBLab), 
+                InlineKeyboardButton.WithCallbackData("My Next Lab", TelegramCallbackQueryData.MyNextLabSchedule),
+                InlineKeyboardButton.WithCallbackData("Lab Schedule File", TelegramCallbackQueryData.LabScheduleFile) 
+            },
+            new[]
+            {
+                InlineKeyboardButton.WithCallbackData("Main Menu 🔙", TelegramCallbackQueryData.ScheduleMainMenu)
             }
         });
         
-        await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
-            callbackQuery.Message.MessageId,
-            @"<b>Please choose your group. 🧑‍🤝‍🧑</b>", 
-            replyMarkup: keyboard,
+        await _botClient.EditMessageTextAsync(user.ChatId,
+            callbackQuery.Message!.MessageId,
+            "<b>Please choose an option below</b>",
             parseMode: ParseMode.Html,
+            replyMarkup: keyboard,
             cancellationToken: cancellationToken);
     }
 
-    public async Task HandleMainMenuDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    public async Task HandleScheduleMainMenuDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
         var keyboard = new InlineKeyboardMarkup(new []
         {
@@ -69,67 +262,143 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             }
         });
 
-        await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
-            callbackQuery.Message.MessageId,
+        await _botClient.EditMessageTextAsync(user.ChatId,
+            callbackQuery.Message!.MessageId,
             "<b>Please select the schedule you want to view. 📄</b>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
-
-    public async Task HandleGroupADataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    
+    public async Task HandleMyNextLabDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var keyboard = new InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("Today's Schedule", TelegramCallbackQueryData.GroupATodaySchedule),
-                InlineKeyboardButton.WithCallbackData("Tomorrow's Schedule", TelegramCallbackQueryData.GroupATomorrowSchedule)
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("Schedule file", TelegramCallbackQueryData.NormalScheduleFile)
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("🔙 Main Menu", TelegramCallbackQueryData.NormalScheduleMainMenu)
-            }
-        });
+        var schedule = await _labScheduleRepository
+            .GetByAcademicYearAsync(user.AcademicYear, cancellationToken: cancellationToken);
+
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
-            callbackQuery.Message.MessageId,
-            "<b>Please select the schedule you want to view. 📄</b>",
-            replyMarkup: keyboard,
+        if (schedule is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+
+        Lab? nextLab;
+
+        TimeSpan nextLabEta;
+        if (schedule.SplitMethod is SplitMethod.BySectionParts)
+        {
+            nextLab = schedule.Labs
+                .Where(l => l.Section == user.Section && user.BenchNumber >= l.BenchNumbersRange!.Value.Start.Value
+                                                      && user.BenchNumber <= l.BenchNumbersRange.Value.End.Value
+                                                      && l.Date >= _timeService.GetCurrentUtcTime())
+                .OrderBy(d => d.Date)
+                .FirstOrDefault();
+
+            if (nextLab is null)
+            {
+                await _botClient.SendTextMessageAsync(user.ChatId,
+                    "<b>You don't have any labs left for this academic year.</b>",
+                    parseMode: ParseMode.Html,
+                    cancellationToken: cancellationToken);
+                
+                await _botClient.SendStickerAsync(user.ChatId,
+                    new InputFileId(TelegramStickers.NoScheduleSticker),
+                    cancellationToken: cancellationToken);
+                
+                return;
+            }
+            
+            nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
+                $"<b><u>Lab date:<u> {_timeService.ConvertUtcToTimeZoneTime(nextLab.Date, TimeZoneIds.Egypt):U}</b>\n" +
+                $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
+                $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+
+            return;
+        }
+        
+        nextLab = schedule.Labs
+            .Where(l => l.Section == user.Section && l.Date >= _timeService.GetCurrentUtcTime())
+            .OrderBy(d => d.Date)
+            .FirstOrDefault();
+
+        if (nextLab is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>You don't have any labs left for this academic year.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+                
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+                
+            return;
+        }
+        
+        nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
+        await _botClient.SendTextMessageAsync(user.ChatId,
+            $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
+            $"<b><u>Lab date:<u> {_timeService.ConvertUtcToTimeZoneTime(nextLab.Date, TimeZoneIds.Egypt):U}</b>\n" +
+            $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
+            $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
-
-    public async Task HandleGroupBDataAsync(CallbackQuery callbackQuery, CancellationToken cancellationToken)
+    
+    public async Task HandleLabScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var keyboard = new InlineKeyboardMarkup(new[]
-        {
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("Today's Schedule",
-                    TelegramCallbackQueryData.GroupBTodaySchedule),
-                InlineKeyboardButton.WithCallbackData("Tomorrow's Schedule",
-                    TelegramCallbackQueryData.GroupBTomorrowSchedule),
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("Schedule file", TelegramCallbackQueryData.NormalScheduleFile)
-            },
-            new[]
-            {
-                InlineKeyboardButton.WithCallbackData("🔙 Main Menu", TelegramCallbackQueryData.NormalScheduleMainMenu)
-            }
-        });
+        var schedule = await _labScheduleRepository
+            .GetByAcademicYearAsync(user.AcademicYear, cancellationToken: cancellationToken);
+
+        await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        await _botClient.EditMessageTextAsync(callbackQuery.Message!.Chat.Id,
-            callbackQuery.Message.MessageId,
-            "<b>Please select the schedule you want to view. 📄</b>",
-            replyMarkup: keyboard,
-            parseMode: ParseMode.Html,
+        if (schedule is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+
+        if (schedule.FileUri is null)
+        {
+            await _botClient.SendTextMessageAsync(user.ChatId,
+                "<b>Schedule file is not yet uploaded by your academic year representative. Please be patient.</b>",
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+            
+            await _botClient.SendStickerAsync(user.ChatId,
+                new InputFileId(TelegramStickers.NoScheduleSticker),
+                cancellationToken: cancellationToken);
+            
+            return;
+        }
+        
+        await _botClient.SendChatActionAsync(user.ChatId,
+            ChatAction.UploadDocument,
+            cancellationToken: cancellationToken);
+        
+        await _botClient.SendDocumentAsync(user.ChatId,
+            new InputFileUrl(schedule.FileUri),
             cancellationToken: cancellationToken);
     }
 }
