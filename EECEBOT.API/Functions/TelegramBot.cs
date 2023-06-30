@@ -21,7 +21,7 @@ public class TelegramBot
         _logger = loggerFactory.CreateLogger<TelegramBot>();
     }
 
-    [Function("TelegramBotWebhook")]
+    [Function("Telegram-Bot-Webhook")]
     public async Task TelegramWebhook([HttpTrigger(AuthorizationLevel.Anonymous,
         "post",
         Route = "bot-webhook")]

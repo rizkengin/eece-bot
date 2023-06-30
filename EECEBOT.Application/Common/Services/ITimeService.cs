@@ -2,6 +2,10 @@
 
 public interface ITimeService
 {
-    DateTime GetCurrentUtcTime();
-    DateTime? ConvertUtcToTimeZoneTime(DateTime utcTime, string timeZoneId);
+    DateTimeOffset GetCurrentUtcTime();
+    DateTime ConvertUtcDateTimeOffsetToAppDateTime(DateTimeOffset utcTime);
+    DateTimeOffset ConvertAppDateTimeToUtcDateTimeOffset(DateTime appTimeZoneTime);
+    bool IsAppTimeZoneIdValid();
+    string GetAppTimeZoneId();
+    string GetUtcTimeZoneId();
 }

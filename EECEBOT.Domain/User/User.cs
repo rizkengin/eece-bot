@@ -1,12 +1,10 @@
 ﻿using System.Globalization;
 using EECEBOT.Domain.Common.Enums;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.User;
 
 public class User
 {
-    [JsonConstructor]
     private User(Guid id,
         string firstName,
         string lastName,

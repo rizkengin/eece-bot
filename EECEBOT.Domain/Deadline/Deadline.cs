@@ -1,15 +1,13 @@
 ﻿using EECEBOT.Domain.Common.Enums;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.Deadline;
 
 public class Deadline
 {
-    [JsonConstructor]
-    public Deadline(Guid id,
+    private Deadline(Guid id,
         string title,
         string description,
-        DateTime dueDate,
+        DateTimeOffset dueDate,
         AcademicYear academicYear)
     {
         Id = id;
@@ -21,11 +19,11 @@ public class Deadline
     public Guid Id { get; private set; }
     public string Title { get; private set; }
     public string Description { get; private set; }
-    public DateTime DueDate { get; private set; }
+    public DateTimeOffset DueDate { get; private set; }
     public AcademicYear AcademicYear { get; private set; }
     
-    public static Deadline Create(string title, string description, DateTime dueDate, AcademicYear academicYear) => 
-        new Deadline(Guid.NewGuid(), title, description, dueDate, academicYear);
+    public static Deadline Create(string title, string description, DateTimeOffset dueDate, AcademicYear academicYear) 
+        => new(Guid.NewGuid(), title, description, dueDate, academicYear);
     
-    public TimeSpan GetTimeLeft() => DueDate - DateTime.UtcNow;
+    public TimeSpan GetTimeLeft() =>  DueDate - DateTimeOffset.UtcNow;
 }

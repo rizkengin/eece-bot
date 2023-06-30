@@ -5,7 +5,6 @@ using EECEBOT.Domain.Exam;
 using EECEBOT.Domain.LabSchedule;
 using EECEBOT.Domain.Link;
 using EECEBOT.Domain.Schedule;
-using EECEBOT.Domain.Schedule.Entities;
 using EECEBOT.Domain.TelegramUser;
 using EECEBOT.Domain.User;
 using EECEBOT.Infrastructure.Persistence;
@@ -26,6 +25,9 @@ public static class DependencyInjection
         services.AddScoped<ITelegramBotCallbackQueryDataHandler, TelegramBotCallbackQueryDataHandler>();
         services.AddScoped<ILabScheduleRepository, LabScheduleRepository>();
         services.AddScoped<IScheduleRepository, ScheduleRepository>();
+        services.AddScoped<ILinksRepository, LinksRepository>();
+        services.AddScoped<IExamsRepository, ExamsRepository>();
+        services.AddScoped<IDeadlinesRepository, DeadlinesRepository>();
         services.AddScoped<ITimeService,TimeService>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
         services.AddPersistence(configuration);
@@ -39,6 +41,8 @@ public static class DependencyInjection
         {
             options.Connection(configuration["EECEBOTDb"]!);
             
+            options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All);
+
             options.Schema.For<TelegramUser>()
                 .Index(x => x.ChatId, x => x.IsUnique = true)
                 .Identity(x => x.Id);
@@ -49,18 +53,17 @@ public static class DependencyInjection
 
             options.Schema.For<Link>()
                 .Identity(x => x.Id);
-            
+
             options.Schema.For<Exam>()
-                .Identity(x => x.Id);
-            
-            options.Schema.For<Subject>()
                 .Identity(x => x.Id);
 
             options.Schema.For<Schedule>()
-                .Identity(x => x.Id);
+                .Identity(x => x.Id)
+                .Index(x => x.AcademicYear, x => x.IsUnique = true);
 
             options.Schema.For<LabSchedule>()
                 .Identity(x => x.Id);
+
         }).UseLightweightSessions()
             .ApplyAllDatabaseChangesOnStartup()
             .AssertDatabaseMatchesConfigurationOnStartup();

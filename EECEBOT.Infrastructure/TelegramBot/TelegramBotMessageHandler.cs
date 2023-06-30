@@ -1,6 +1,7 @@
 ﻿using System.Text;
 using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
+using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.Common;
 using EECEBOT.Domain.Deadline;
@@ -19,18 +20,21 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 {
     private readonly ITelegramBotClient _botClient;
     private readonly IQuerySession _querySession;
+    private readonly ITimeService _timeService;
     private readonly ITelegramUserRepository _telegramUserRepository;
     private readonly IUnitOfWork _unitOfWork;
 
     public TelegramBotMessageHandler(ITelegramBotClient botClient,
         IQuerySession querySession,
         IUnitOfWork unitOfWork,
-        ITelegramUserRepository telegramUserRepository)
+        ITelegramUserRepository telegramUserRepository,
+        ITimeService timeService)
     {
         _botClient = botClient;
         _querySession = querySession;
         _unitOfWork = unitOfWork;
         _telegramUserRepository = telegramUserRepository;
+        _timeService = timeService;
     }
 
     public async Task HandleStartFlow(Message message, CancellationToken cancellationToken)
@@ -156,9 +160,11 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleExamsCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         var exams = _querySession.Query<Exam>()
-            .Where(x=> x.AcademicYear == user.AcademicYear)
+            .Where(x=> x.AcademicYear == user.AcademicYear &&
+                       x.Date >= _timeService.GetCurrentUtcTime())
+            .OrderBy(x => x.Date)
             .ToList();
-
+        
         if (exams.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -178,21 +184,28 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         foreach (var exam in exams)
         {
-            examsMessage.Append($"<b>{exam.Name}</b>\n");
-            examsMessage.Append($"<b>Date:</b> {exam.Date}\n");
-            examsMessage.Append($"<b>Location:</b> {exam.Location}\n\n");
+            var timeLeft = exam.GetTimeLeft();
+            
+            examsMessage.Append($"<b>{exam.Name} ({exam.Type.ToString()})</b>\n");
+            examsMessage.Append($"<b>Date:</b> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(exam.Date):dd-MM-yyy HH:mm}\n");
+            examsMessage.Append($"<b>Description:</b> {exam.Description}\n");
+            examsMessage.Append($"<b>Location:</b> {exam.Location ?? "TBD"}\n");
+            examsMessage.Append($"<b>Time Left:</b> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes\n\n");
         }
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,
             examsMessage.ToString(),
             replyMarkup: new ReplyKeyboardRemove(),
+            parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
 
     public async Task HandleDeadlinesCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         var deadlines = _querySession.Query<Deadline>()
-            .Where(x=> x.AcademicYear == user.AcademicYear)
+            .Where(x=> x.AcademicYear == user.AcademicYear
+            && x.DueDate >= _timeService.GetCurrentUtcTime())
+            .OrderBy(x => x.DueDate)
             .ToList();
 
         if (deadlines.Count == 0)
@@ -215,9 +228,12 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         foreach (var deadline in deadlines)
         {
+            var timeLeft = deadline.GetTimeLeft();
+            
             deadlinesMessage.Append($"<b>{deadline.Title}</b>\n");
             deadlinesMessage.Append($"<b>Description:</b> {deadline.Description}\n");
-            deadlinesMessage.Append($"<b>Due Date:</b> {deadline.DueDate}\n\n");
+            deadlinesMessage.Append($"<b>Due Date:</b> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(deadline.DueDate):dd-MM-yyy HH:mm}\n");
+            deadlinesMessage.Append($"<b>Time Left:</b> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes\n\n");
         }
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,

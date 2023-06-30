@@ -1,15 +1,13 @@
 ﻿using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.LabSchedule.Common;
 using EECEBOT.Domain.LabSchedule.ValueObjects;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.LabSchedule;
 
 public class LabSchedule
 {
     private readonly List<Lab> _labs = new();
-
-    [JsonConstructor]
+    
     private LabSchedule(Guid id,
         AcademicYear academicYear,
         SplitMethod splitMethod)

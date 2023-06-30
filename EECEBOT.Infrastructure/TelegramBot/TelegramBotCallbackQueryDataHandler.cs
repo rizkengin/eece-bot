@@ -80,14 +80,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             
             return;
         }
-        var currentTime = _timeService.ConvertUtcToTimeZoneTime(_timeService.GetCurrentUtcTime(), TimeZoneIds.Egypt);
-
-        if (currentTime is null)
-            return;
+        var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
 
         var todaySessions = schedule.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
-                        && s.DayOfWeek == currentTime.Value.DayOfWeek)
+                        && s.DayOfWeek == currentTime.DayOfWeek)
             .OrderBy(d => d.Period)
             .ToList();
 
@@ -142,14 +139,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             
             return;
         }
-        var currentTime = _timeService.ConvertUtcToTimeZoneTime(_timeService.GetCurrentUtcTime(), TimeZoneIds.Egypt);
-
-        if (currentTime is null)
-            return;
+        var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
 
         var tomorrowSessions = schedule.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
-                        && s.DayOfWeek == currentTime.Value.AddDays(1).DayOfWeek)
+                        && s.DayOfWeek == currentTime.AddDays(1).DayOfWeek)
             .OrderBy(d => d.Period)
             .ToList();
 
@@ -320,7 +314,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
             await _botClient.SendTextMessageAsync(user.ChatId,
                 $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
-                $"<b><u>Lab date:<u> {_timeService.ConvertUtcToTimeZoneTime(nextLab.Date, TimeZoneIds.Egypt):U}</b>\n" +
+                $"<b><u>Lab date:<u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):U}</b>\n" +
                 $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
                 $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
                 parseMode: ParseMode.Html,
@@ -351,7 +345,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
         await _botClient.SendTextMessageAsync(user.ChatId,
             $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
-            $"<b><u>Lab date:<u> {_timeService.ConvertUtcToTimeZoneTime(nextLab.Date, TimeZoneIds.Egypt):U}</b>\n" +
+            $"<b><u>Lab date:<u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):U}</b>\n" +
             $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
             $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
             parseMode: ParseMode.Html,

@@ -7,6 +7,8 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <PackageReference Include="ErrorOr" Version="1.2.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
         <PrivateAssets>all</PrivateAssets>

@@ -1,16 +1,14 @@
 ﻿using EECEBOT.Domain.Common.Enums;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.Exam;
 
 public class Exam
 {
-    [JsonConstructor]
     private Exam(Guid id,
         string name,
         ExamType type,
         string description,
-        DateTime date,
+        DateTimeOffset date,
         AcademicYear academicYear,
         string? location)
     {
@@ -27,13 +25,15 @@ public class Exam
     public ExamType Type { get; private set; }
     public string Description { get; private set; }
     public string? Location { get; private set; }
-    public DateTime Date { get; private set; }
+    public DateTimeOffset Date { get; private set; }
     public AcademicYear AcademicYear { get; private set; }
     
     public static Exam Create(string name,
         ExamType type,
         string description,
-        DateTime date,
+        DateTimeOffset date,
         AcademicYear academicYear,
         string? location = null) => new Exam(Guid.NewGuid(), name, type, description, date, academicYear, location);
+    
+    public TimeSpan GetTimeLeft() => Date - DateTimeOffset.UtcNow;
 }

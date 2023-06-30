@@ -1,4 +1,8 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using System.Reflection;
+using EECEBOT.Application.Common.Behaviors;
+using FluentValidation;
+using MediatR;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Telegram.Bot;
 
@@ -10,8 +14,12 @@ public static class DependencyInjection
     {
         services
             .AddTelegramBotServices(configuration)
-            .AddMediatR(config => config.RegisterServicesFromAssembly(typeof(DependencyInjection).Assembly));
+            .AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()));
+        
+        services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
+        services.AddValidatorsFromAssembly(Assembly.GetExecutingAssembly());
+        
         return services;
     }
     private static IServiceCollection AddTelegramBotServices(this IServiceCollection services, IConfiguration configuration)

@@ -6,7 +6,7 @@ public class Lab
 {
     private Lab(
         string name,
-        DateTime date,
+        DateTimeOffset date,
         string location,
         Section section,
         Range? benchNumbersRange = null)
@@ -18,13 +18,13 @@ public class Lab
         Section = section;
     }
     public string Name { get; private set; }
-    public DateTime Date { get; private set; }
+    public DateTimeOffset Date { get; private set; }
     public Section Section { get; private set; }
     public Range? BenchNumbersRange { get; private set; }
     public string Location { get; private set; }
 
     public static Lab Create(string name,
-        DateTime date,
+        DateTimeOffset date,
         string location,
         Section section,
         Range? benchNumbersRange = null) => new(name, date, location, section, benchNumbersRange);

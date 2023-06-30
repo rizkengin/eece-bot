@@ -1,14 +1,12 @@
 ﻿using EECEBOT.Domain.Common.Enums;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.Link;
 
 public class Link
 {
-    [JsonConstructor]
     private Link(Guid id,
         string name,
-        string url,
+        Uri url,
         AcademicYear academicYear)
     {
         Id = id;
@@ -19,8 +17,8 @@ public class Link
     
     public Guid Id { get; private set; }
     public string Name { get; private set; }
-    public string Url { get; private set; }
+    public Uri Url { get; private set; }
     public AcademicYear AcademicYear { get; private set; }
 
-    public static Link Create(string name, string url, AcademicYear academicYear) => new Link(Guid.NewGuid(), name, url, academicYear);
+    public static Link Create(string name, Uri url, AcademicYear academicYear) => new Link(Guid.NewGuid(), name, url, academicYear);
 }

@@ -64,19 +64,19 @@ internal sealed class MessageReceivedQueryHandler : IRequestHandler<MessageRecei
                 switch(request.Message.Text) 
                 {
                     case "1st year":
-                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.First);
+                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.FirstYear);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                         break;
                     case "2nd year":
-                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.Second);
+                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.SecondYear);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                         break;
                     case "3rd year":
-                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.Third);
+                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.ThirdYear);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                         break;
                     case "4th year":
-                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.Fourth);
+                        _telegramUserRepository.UpdateAcademicYear(user, AcademicYear.FourthYear);
                         await _unitOfWork.SaveChangesAsync(cancellationToken);
                         break;
                     default:

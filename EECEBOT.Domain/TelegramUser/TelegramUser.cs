@@ -1,12 +1,10 @@
 ﻿using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.Schedule.Enums;
-using Newtonsoft.Json;
 
 namespace EECEBOT.Domain.TelegramUser;
 
 public class TelegramUser
 {
-    [JsonConstructor]
     private TelegramUser(Guid id,
                          long telegramId,
                          string firstName,
