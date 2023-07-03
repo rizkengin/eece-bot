@@ -20,8 +20,16 @@ public class LabSchedule
     public AcademicYear AcademicYear { get; private set; }
     public SplitMethod SplitMethod { get; private set; }
     public Uri? FileUri { get; private set; }
-    
-    public IReadOnlyCollection<Lab> Labs => _labs.AsReadOnly();
+
+    public IReadOnlyCollection<Lab> Labs
+    {
+        get => _labs.ToArray();
+        private set
+        {
+            _labs.Clear();
+            _labs.AddRange(value);
+        }
+    }
 
     public static LabSchedule Create(
         AcademicYear academicYear,
@@ -29,8 +37,7 @@ public class LabSchedule
     
     public void UpdateLabs(IEnumerable<Lab> labs)
     {
-        _labs.Clear();
-        _labs.AddRange(labs);
+        Labs = labs.ToList();
     }
     
     public void UpdateFileUri(Uri fileUri) => FileUri = fileUri;

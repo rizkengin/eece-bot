@@ -5,7 +5,6 @@ using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.Common.Errors;
 using EECEBOT.Domain.Schedule.Entities;
 using EECEBOT.Domain.Schedule.Enums;
-using EECEBOT.Domain.Schedule.ValueObjects;
 using MediatR;
 using ErrorOr;
 
@@ -30,25 +29,28 @@ internal sealed class UpdateScheduleCommandHandler : IRequestHandler<UpdateSched
         if (schedule is null)
             return Errors.ScheduleErrors.ScheduleNotFound;
         
+        if (!await _scheduleRepository.IsSubjectsExist(request.Sessions.Select(x => x.SubjectId).Distinct().ToList(), cancellationToken))
+            return Errors.ScheduleErrors.InvalidSubjectsIds;
+
         var sessions = request.Sessions.Select(x => Session.Create(
+            schedule.Id,
             Enum.Parse<DayOfWeek>(x.DayOfWeek, ignoreCase: true),
             Enum.Parse<Period>(x.Period, ignoreCase: true),
-            Subject.Create(x.Subject!.Name, x.Subject.Code),
+            x.SubjectId,
             x.Lecturer,
             x.Location,
             Enum.Parse<SessionType>(x.SessionType, ignoreCase: true),
             Enum.Parse<SessionFrequency>(x.Frequency, ignoreCase: true),
-            x.Sections.Select(y => Enum.Parse<Section>(y, ignoreCase: true)).ToList()));
+            x.Sections.Select(y => Enum.Parse<Section>(y, ignoreCase: true)).ToList()))
+            .ToList();
 
         var updateScheduleStartDateResult = schedule
             .TryUpdateScheduleStartDate(DateOnly.FromDateTime(DateTime.ParseExact(request.ScheduleStartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture)));
         
         if (updateScheduleStartDateResult.IsError)
             return updateScheduleStartDateResult.Errors;
-        
-        schedule.UpdateSessions(sessions);
 
-        await _scheduleRepository.UpdateScheduleAsync(schedule, schedule.AcademicYear, cancellationToken);
+        await _scheduleRepository.UpdateScheduleSessionsAsync(schedule, sessions, cancellationToken);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

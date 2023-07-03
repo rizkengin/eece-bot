@@ -106,12 +106,18 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         foreach (var session in todaySessions)
         {
-            message.Append($"<b><u>Period<u> {session.Period.ToFriendlyString()}</b>\n");
-            message.Append($"<b><u>Subject:<u> {session.Subject}</b>\n");
-            message.Append($"<b><u>Location:<u> {session.Location}</b>\n");
-            message.Append($"<b><u>Lecturer:<u> {session.Lecturer}</b>\n");
-            message.Append($"<b><u>Session Type:<u> {session.SessionType.ToString()}</b>\n");
-            message.Append($"<b><u>Session Frequency:<u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+            var subject = await _scheduleRepository.GetSubjectById(session.SubjectId);
+            
+            var subjectName = subject is null ? "Unknown" : subject.Name;
+            
+            var subjectCode = subject is null ? "Unknown" : subject.Code;
+            
+            message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
+            message.Append($"<b><u>Subject:</u> {subjectName} ({subjectCode})</b>\n");
+            message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
+            message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
+            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
+            message.Append($"<b><u>Session Frequency:</u> {session.Frequency.ToFriendlyString()}</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(user.ChatId,
@@ -165,12 +171,18 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         foreach (var session in tomorrowSessions)
         {
-            message.Append($"<b><u>Period<u> {session.Period.ToFriendlyString()}</b>\n");
-            message.Append($"<b><u>Subject:<u> {session.Subject}</b>\n");
-            message.Append($"<b><u>Location:<u> {session.Location}</b>\n");
-            message.Append($"<b><u>Lecturer:<u> {session.Lecturer}</b>\n");
-            message.Append($"<b><u>Session Type:<u> {session.SessionType.ToString()}</b>\n");
-            message.Append($"<b><u>Session Frequency:<u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+            var subject = await _scheduleRepository.GetSubjectById(session.SubjectId);
+            
+            var subjectName = subject is null ? "Unknown" : subject.Name;
+            
+            var subjectCode = subject is null ? "Unknown" : subject.Code;
+            
+            message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
+            message.Append($"<b><u>Subject:</u> {subjectName} ({subjectCode})</b>\n");
+            message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
+            message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
+            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
+            message.Append($"<b><u>Session Frequency:</u> {session.Frequency.ToFriendlyString()}</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(user.ChatId,
@@ -288,7 +300,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         Lab? nextLab;
 
         TimeSpan nextLabEta;
-        if (schedule.SplitMethod is SplitMethod.BySectionParts)
+        if (schedule.SplitMethod is SplitMethod.ByBenchNumber)
         {
             nextLab = schedule.Labs
                 .Where(l => l.Section == user.Section && user.BenchNumber >= l.BenchNumbersRange!.Value.Start.Value

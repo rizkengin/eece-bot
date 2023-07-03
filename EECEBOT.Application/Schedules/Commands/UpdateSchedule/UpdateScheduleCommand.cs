@@ -13,12 +13,9 @@ public sealed record UpdateScheduleCommand(Guid ScheduleId,
 public sealed record SessionUpdateRequest(
     string DayOfWeek,
     string Period,
-    SubjectUpdateRequest? Subject,
+    Guid SubjectId,
     string Lecturer,
     string Location,
     string SessionType,
     string Frequency,
     IEnumerable<string> Sections);
-    
-public sealed record SubjectUpdateRequest(string Name,
-    string Code);

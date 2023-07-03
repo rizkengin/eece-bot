@@ -29,14 +29,17 @@ internal sealed class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery
                 schedule.Id,
                 schedule.ScheduleStartDate.ToString("dd-MM-yyyy"),
                 schedule.FileUri?.ToString(),
-                schedule.Sessions.Select(s => new SessionResult(
-                    new SubjectResult(s.Subject.Name, s.Subject.Code),
+                schedule.Sessions.Select(async s => new SessionResult(
+                    await _scheduleRepository.GetSubjectById(s.SubjectId) is { } subject ?
+                        new SubjectResult(subject.Name, subject.Code) :
+                        new SubjectResult(string.Empty, string.Empty),
                     s.DayOfWeek.ToString(),
                     s.Period.ToString(),
                     s.Lecturer,
                     s.Location,
                     s.SessionType.ToString(),
                     s.Frequency.ToString(),
-                    s.Sections.Select(sec => sec.ToFriendlyString())))));
+                    s.Sections.Select(sec => sec.ToFriendlyString())))
+                    .Select(x => x.Result)));
     }
 }
