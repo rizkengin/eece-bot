@@ -4,11 +4,7 @@ using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.Common;
-using EECEBOT.Domain.Deadline;
-using EECEBOT.Domain.Exam;
-using EECEBOT.Domain.Link;
-using EECEBOT.Domain.TelegramUser;
-using Marten;
+using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -19,22 +15,23 @@ namespace EECEBOT.Infrastructure.TelegramBot;
 public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly IQuerySession _querySession;
+    private readonly IAcademicYearRepository _academicYearRepository;
     private readonly ITimeService _timeService;
     private readonly ITelegramUserRepository _telegramUserRepository;
     private readonly IUnitOfWork _unitOfWork;
 
-    public TelegramBotMessageHandler(ITelegramBotClient botClient,
-        IQuerySession querySession,
-        IUnitOfWork unitOfWork,
+    public TelegramBotMessageHandler(
+        ITelegramBotClient botClient,
+        IAcademicYearRepository academicYearRepository,
+        ITimeService timeService,
         ITelegramUserRepository telegramUserRepository,
-        ITimeService timeService)
+        IUnitOfWork unitOfWork)
     {
         _botClient = botClient;
-        _querySession = querySession;
-        _unitOfWork = unitOfWork;
-        _telegramUserRepository = telegramUserRepository;
+        _academicYearRepository = academicYearRepository;
         _timeService = timeService;
+        _telegramUserRepository = telegramUserRepository;
+        _unitOfWork = unitOfWork;
     }
 
     public async Task HandleStartFlow(Message message, CancellationToken cancellationToken)
@@ -159,13 +156,10 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 
     public async Task HandleExamsCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
-        var exams = _querySession.Query<Exam>()
-            .Where(x=> x.AcademicYear == user.AcademicYear &&
-                       x.Date >= _timeService.GetCurrentUtcTime())
-            .OrderBy(x => x.Date)
-            .ToList();
+        var exams = await _academicYearRepository
+            .GetExamsAsync(user.Year, cancellationToken);
         
-        if (exams.Count == 0)
+        if (exams.Value.ToList().Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
                 "<b>You have no exams scheduled yet!</b>",
@@ -182,15 +176,15 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         var examsMessage = new StringBuilder();
         
-        foreach (var exam in exams)
+        foreach (var exam in exams.Value)
         {
             var timeLeft = exam.GetTimeLeft();
             
-            examsMessage.Append($"<b>{exam.Name} ({exam.Type.ToString()})</b>\n");
-            examsMessage.Append($"<b>Date:</b> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(exam.Date):dd-MM-yyy HH:mm}\n");
-            examsMessage.Append($"<b>Description:</b> {exam.Description}\n");
-            examsMessage.Append($"<b>Location:</b> {exam.Location ?? "TBD"}\n");
-            examsMessage.Append($"<b>Time Left:</b> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes\n\n");
+            examsMessage.Append($"<b><u>{exam.Name} ({exam.Type.ToString()})</u></b>\n");
+            examsMessage.Append($"<b><u>Date:</u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(exam.Date):dd-MM-yyy HH:mm}</b>\n");
+            examsMessage.Append($"<b><u>Description:</u> {exam.Description}</b>\n");
+            examsMessage.Append($"<b><u>Location:</u> {exam.Location ?? "TBD"}</b>\n");
+            examsMessage.Append($"<b><u>Time Left:</u> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -202,13 +196,13 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 
     public async Task HandleDeadlinesCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
-        var deadlines = _querySession.Query<Deadline>()
-            .Where(x=> x.AcademicYear == user.AcademicYear
-            && x.DueDate >= _timeService.GetCurrentUtcTime())
-            .OrderBy(x => x.DueDate)
-            .ToList();
+        var deadlines = await _academicYearRepository
+            .GetDeadlinesAsync(user.Year, cancellationToken);
 
-        if (deadlines.Count == 0)
+        if (deadlines.Value
+                .Where(x => x.DueDate >= _timeService.GetCurrentUtcTime())
+                .ToList()
+                .Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
                 "<b>You have no deadlines yet!</b>",
@@ -226,14 +220,14 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         var deadlinesMessage = new StringBuilder();
         
-        foreach (var deadline in deadlines)
+        foreach (var deadline in deadlines.Value)
         {
             var timeLeft = deadline.GetTimeLeft();
             
-            deadlinesMessage.Append($"<b>{deadline.Title}</b>\n");
-            deadlinesMessage.Append($"<b>Description:</b> {deadline.Description}\n");
-            deadlinesMessage.Append($"<b>Due Date:</b> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(deadline.DueDate):dd-MM-yyy HH:mm}\n");
-            deadlinesMessage.Append($"<b>Time Left:</b> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes\n\n");
+            deadlinesMessage.Append($"<b><u>{deadline.Title}</u></b>\n");
+            deadlinesMessage.Append($"<b><u>Description:</u> {deadline.Description}</b>\n");
+            deadlinesMessage.Append($"<b><u>Due Date:</u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(deadline.DueDate):dd-MM-yyy HH:mm}</b>\n");
+            deadlinesMessage.Append($"<b><u>Time Left:</u> {timeLeft.Days} days, {timeLeft.Hours} hours, {timeLeft.Minutes} minutes</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,
@@ -262,11 +256,10 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
 
     public async Task HandleLinksCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
-        var links = _querySession.Query<Link>()
-            .Where(x=> x.AcademicYear == user.AcademicYear)
-            .ToList();
+        var links = await _academicYearRepository
+            .GetLinksAsync(user.Year, cancellationToken);
 
-        if (links.Count == 0)
+        if (links.Value.ToList().Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
                 "<b>There are no links available for your academic year yet!</b>",
@@ -282,7 +275,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         var linksMessage = new StringBuilder();
         
-        foreach (var link in links)
+        foreach (var link in links.Value)
         {
             linksMessage.Append($"<b>{link.Name}</b>\n");
             linksMessage.Append($"<b>Link:</b> {link.Url}\n\n");

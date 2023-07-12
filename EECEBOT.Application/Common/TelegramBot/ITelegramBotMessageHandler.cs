@@ -1,4 +1,4 @@
-﻿using EECEBOT.Domain.TelegramUser;
+﻿using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot.Types;
 
 namespace EECEBOT.Application.Common.TelegramBot;

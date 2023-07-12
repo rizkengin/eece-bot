@@ -1,31 +1,39 @@
 using EECEBOT.API;
 using EECEBOT.API.Common;
-using EECEBOT.API.Common.Errors;
 using EECEBOT.Application;
 using EECEBOT.Infrastructure;
-using Microsoft.Azure.Functions.Worker;
-using Microsoft.Extensions.Hosting;
+using Hangfire;
+using Serilog;
 
-var host = new HostBuilder()
-    .ConfigureFunctionsWorkerDefaults(workerOptions =>
-    {
-        workerOptions.UseAspNetCoreIntegration();
-        workerOptions.UseMiddleware<ExceptionHandlingMiddleware>();
-    })
-    .ConfigureAspNetCoreIntegration()
-    .ConfigureAppConfiguration(builder =>
-    {
-        builder.AddAzureVaultConfiguration();
-    })
-    .ConfigureServices((context, services) =>
-    {
-        services
-            .AddPresentation()
-            .AddApplication(context.Configuration)
-            .AddInfrastructure(context.Configuration);
-    })
-    .Build();
+var builder = WebApplication.CreateBuilder(args);
 
-ApplicationHealthChecks.Check(host);
+builder.Services
+       .AddAzureVaultConfiguration(builder.Configuration)
+       .AddPresentation(builder.Host)
+       .AddApplication(builder.Configuration)
+       .AddInfrastructure(builder.Configuration);
 
-host.Run();
+var app = builder.Build();
+
+ApplicationStartChecks.Check(app.Services, app.Configuration);
+
+app.UseHangfireDashboard();
+
+app.UseSerilogRequestLogging();
+
+if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+{
+    app.UseSwagger();
+    app.UseSwaggerUI();
+}
+app.UseExceptionHandler("/error");
+
+app.UseAuthentication();
+
+app.UseAuthorization();
+
+app.MapControllers();
+
+app.MapHangfireDashboard();
+
+app.Run();

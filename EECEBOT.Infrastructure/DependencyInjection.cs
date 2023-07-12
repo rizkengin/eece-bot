@@ -2,34 +2,62 @@
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
-using EECEBOT.Domain.Exam;
-using EECEBOT.Domain.LabSchedule;
-using EECEBOT.Domain.Link;
-using EECEBOT.Domain.Schedule;
-using EECEBOT.Domain.Schedule.Entities;
-using EECEBOT.Domain.TelegramUser;
-using EECEBOT.Domain.User;
+using EECEBOT.Domain.AcademicYearAggregate;
+using EECEBOT.Domain.TelegramUserAggregate;
+using EECEBOT.Domain.UserAggregate;
 using EECEBOT.Infrastructure.Persistence;
+using EECEBOT.Infrastructure.Persistence.Interceptors;
 using EECEBOT.Infrastructure.Services;
 using EECEBOT.Infrastructure.TelegramBot;
+using Hangfire;
+using Hangfire.PostgreSql;
 using Marten;
 using Microsoft.Extensions.Azure;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Weasel.Postgresql;
+using Weasel.Core;
 
 namespace EECEBOT.Infrastructure;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddInfrastructure(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddInfrastructure(this IServiceCollection services, ConfigurationManager configuration)
     {
         services
             .AddInterfaces()
             .AddAzureBlobService(configuration)
-            .AddPersistence(configuration);
+            .AddPersistence(configuration)
+            .AddHangfireServices(configuration);
 
         return services;
+    }
+    private static void AddHangfireServices(this IServiceCollection services, IConfiguration configuration)
+    {
+         services.AddHangfire(config =>
+         {
+             config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
+             config.UseSimpleAssemblyNameTypeSerializer();
+             config.UseRecommendedSerializerSettings();
+             config.UsePostgreSqlStorage(configuration["EECEBOTDb"]!);
+             AddBackgroundJobs();
+         });
+        
+        services.AddHangfireServer();
+    }
+    
+    private static void AddBackgroundJobs()
+    {
+        RecurringJob
+            .AddOrUpdate<IBackgroundTasksService>(
+                "ProcessOutboxMessages",
+                x => x.ProcessOutboxMessagesAsync(),
+                Cron.Minutely);
+        
+        RecurringJob
+            .AddOrUpdate<IBackgroundTasksService>(
+                "RequestGithubRepoStarFromUsers",
+                x => x.RequestGithubRepoStarFromUsersAsync(),
+                Cron.Daily);
     }
 
     private static IServiceCollection AddAzureBlobService(this IServiceCollection services, IConfiguration configuration)
@@ -47,24 +75,23 @@ public static class DependencyInjection
         services.AddScoped<ITelegramBotMessageHandler, TelegramBotMessageHandler>();
         services.AddScoped<ITelegramUserRepository, TelegramUserRepository>();
         services.AddScoped<ITelegramBotCallbackQueryDataHandler, TelegramBotCallbackQueryDataHandler>();
-        services.AddScoped<ILabScheduleRepository, LabScheduleRepository>();
-        services.AddScoped<IScheduleRepository, ScheduleRepository>();
-        services.AddScoped<ILinksRepository, LinksRepository>();
-        services.AddScoped<IExamsRepository, ExamsRepository>();
-        services.AddScoped<IDeadlinesRepository, DeadlinesRepository>();
         services.AddScoped<ITimeService,TimeService>();
+        services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
+        services.AddScoped<IBackgroundTasksService, BackgroundTasksService>();
+        services.AddScoped<IUserRepository, UserRepository>();
         services.AddScoped<IUnitOfWork, UnitOfWork>();
-        
+
         return services;
     }
 
-    private static void AddPersistence(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMarten(options =>
         {
             options.Connection(configuration["EECEBOTDb"]!);
             
-            options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All);
+            options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
+                enumStorage: EnumStorage.AsString);
 
             options.Schema.For<TelegramUser>()
                 .DocumentAlias("Telegram_Users")
@@ -76,43 +103,28 @@ public static class DependencyInjection
                 .Index(x => x.Email, x => x.IsUnique = true)
                 .Identity(x => x.Id);
 
-            options.Schema.For<Link>()
-                .DocumentAlias("Links")
+            options.Schema.For<AcademicYear>()
+                .DocumentAlias("Academic_Years")
+                .Identity(x => x.Id);
+            
+            options.Schema.For<OutboxMessage>()
+                .DocumentAlias("Outbox_Messages")
                 .Identity(x => x.Id);
 
-            options.Schema.For<Exam>()
-                .DocumentAlias("Exams")
-                .Identity(x => x.Id);
-
-            options.Schema.For<Schedule>()
-                .DocumentAlias("Schedules")
-                .Identity(x => x.Id)
-                .Index(x => x.AcademicYear, x => x.IsUnique = true);
-
-            options.Schema.For<Session>()
-                .DocumentAlias("Sessions")
-                .Identity(x => x.Id)
-                .ForeignKey<Schedule>(x => x.ScheduleId, dfk => dfk.OnDelete = CascadeAction.Cascade)
-                .ForeignKey<Subject>(x => x.SubjectId, dfk => dfk.OnDelete = CascadeAction.Cascade);
-
-            options.Schema.For<Subject>()
-                .DocumentAlias("Subjects")
-                .Identity(x => x.Id)
-                .ForeignKey<Schedule>(x => x.ScheduleId, dfk => dfk.OnDelete = CascadeAction.Cascade);
-
-            options.Schema.For<LabSchedule>()
-                .DocumentAlias("Lab_Schedules")
-                .Identity(x => x.Id);
-
+            options.Listeners.Add(new ConvertDomainEventsToOutboxMessagesInterceptor());
         }).UseLightweightSessions()
             .ApplyAllDatabaseChangesOnStartup()
             .AssertDatabaseMatchesConfigurationOnStartup();
+
+        return services;
     }
 
-    public static void AddAzureVaultConfiguration(this IConfigurationBuilder builder)
+    public static IServiceCollection AddAzureVaultConfiguration(this IServiceCollection services, ConfigurationManager configuration)
     {
         var keyVaultUrl = new Uri(Environment.GetEnvironmentVariable("eece_bot_azure_key_vault_url")!); // Make sure this is set in system environment variables
         var azureCredentials = new DefaultAzureCredential();
-        builder.AddAzureKeyVault(keyVaultUrl, azureCredentials);
+        configuration.AddAzureKeyVault(keyVaultUrl, azureCredentials);
+
+        return services;
     }
 }

@@ -1,5 +1,5 @@
-﻿using EECEBOT.Application.Deadlines.Commands;
-using EECEBOT.Application.Deadlines.Queries.GetDeadlines;
+﻿using EECEBOT.Application.AcademicYears.Commands.UpdateDeadlines;
+using EECEBOT.Application.AcademicYears.Queries.GetDeadlines;
 using EECEBOT.Contracts.Deadlines;
 using Mapster;
 

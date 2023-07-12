@@ -1,13 +1,12 @@
-﻿using EECEBOT.Application.Schedules.Commands.CreateSchedule;
-using EECEBOT.Application.Schedules.Commands.CreateSubject;
-using EECEBOT.Application.Schedules.Commands.DeleteSubject;
-using EECEBOT.Application.Schedules.Commands.UpdateSchedule;
-using EECEBOT.Application.Schedules.Commands.UpdateScheduleFile;
-using EECEBOT.Application.Schedules.Queries.GetSchedule;
-using EECEBOT.Application.Schedules.Queries.GetSubjects;
+﻿using EECEBOT.Application.AcademicYears.Commands.CreateSchedule;
+using EECEBOT.Application.AcademicYears.Commands.CreateSubject;
+using EECEBOT.Application.AcademicYears.Commands.DeleteSubject;
+using EECEBOT.Application.AcademicYears.Commands.UpdateSchedule;
+using EECEBOT.Application.AcademicYears.Commands.UpdateScheduleFile;
+using EECEBOT.Application.AcademicYears.Queries.GetSchedule;
+using EECEBOT.Application.AcademicYears.Queries.GetSubjects;
 using EECEBOT.Contracts.Schedules;
 using Mapster;
-using Microsoft.AspNetCore.Http;
 
 namespace EECEBOT.API.Common.Mapping;
 
@@ -29,39 +28,36 @@ public class SchedulesMappingConfig : IRegister
                 src.Frequency,
                 src.Sections));
 
-        config.NewConfig<(Guid scheduleId, string academicYear, UpdateScheduleRequest updateScheduleRequest), UpdateScheduleCommand>()
+        config.NewConfig<(UpdateScheduleRequest updateScheduleRequest, string year), UpdateScheduleCommand>()
             .MapWith(src => new UpdateScheduleCommand(
-                src.scheduleId,
-                src.academicYear,
+                src.year,
                 src.updateScheduleRequest.ScheduleStartDate,
                 src.updateScheduleRequest.Sessions.Adapt<IEnumerable<SessionUpdateRequest>>(config)));
 
-        config.NewConfig<(string academicYear, CreateScheduleRequest createScheduleRequest), CreateScheduleCommand>()
+        config.NewConfig<(CreateScheduleRequest createScheduleRequest, string academicYear), CreateScheduleCommand>()
             .MapWith(src => new CreateScheduleCommand(
                 src.academicYear,
                 src.createScheduleRequest.ScheduleStartDate));
 
         config
-            .NewConfig<(Guid scheduleId, string academicYear, IFormFile scheduleFile),
+            .NewConfig<(IFormFile scheduleFile, string year),
                 UpdateScheduleFileCommand>()
             .MapWith(src => new UpdateScheduleFileCommand(
-                src.scheduleId,
-                src.academicYear,
+                src.year,
                 src.scheduleFile));
         
-        config.NewConfig<(Guid scheduleId, string academicYear, CreateScheduleSubjectRequest createScheduleSubjectRequest), CreateScheduleSubjectCommand>()
+        config.NewConfig<(CreateScheduleSubjectRequest createScheduleSubjectRequest, string year), CreateScheduleSubjectCommand>()
             .MapWith(src => new CreateScheduleSubjectCommand(
-                src.scheduleId,
-                src.academicYear,
+                src.year,
                 src.createScheduleSubjectRequest.Name,
                 src.createScheduleSubjectRequest.Code));
 
-        config.NewConfig<Guid, GetScheduleSubjectsQuery>()
+        config.NewConfig<string, GetScheduleSubjectsQuery>()
             .MapWith(x => new GetScheduleSubjectsQuery(x));
         
-        config.NewConfig<(Guid scheduleId, Guid subjectId), DeleteScheduleSubjectCommand>()
+        config.NewConfig<(Guid subjectId, string year), DeleteScheduleSubjectCommand>()
             .MapWith(src => new DeleteScheduleSubjectCommand(
-                src.scheduleId,
+                src.year,
                 src.subjectId));
     }
 }

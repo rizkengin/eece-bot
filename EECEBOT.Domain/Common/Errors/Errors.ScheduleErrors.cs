@@ -1,5 +1,5 @@
-﻿using ErrorOr;
-using Microsoft.AspNetCore.Http;
+﻿using System.Net;
+using ErrorOr;
 
 namespace EECEBOT.Domain.Common.Errors;
 
@@ -7,22 +7,22 @@ public static partial class Errors
 {
     public static class ScheduleErrors
     {
-        public static Error ScheduleNotFound => Error.Custom(StatusCodes.Status404NotFound, "ScheduleNotFound",
-            "The schedule was not found.");
+        public static Error ScheduleNotFound => Error.Custom((int)HttpStatusCode.NotFound, "Schedule.NotFound",
+            "Schedule not found.");
         
-        public static Error ScheduleAlreadyExists => Error.Custom(StatusCodes.Status409Conflict, "ScheduleAlreadyExists",
-            "The schedule already exists.");
+        public static Error ScheduleStartDateMustBeSunday => Error.Custom((int)HttpStatusCode.BadRequest, "Schedule.StartDateMustBeSunday",
+            "Schedule start date must be Sunday.");
         
-        public static Error ScheduleStartDateMustBeSunday => Error.Custom(StatusCodes.Status400BadRequest, "ScheduleStartDateMustBeSunday",
-            "The schedule start date must be a Sunday.");
+        public static Error ScheduleAlreadyExists => Error.Custom((int)HttpStatusCode.BadRequest, "Schedule.AlreadyExists",
+            "Schedule already exists.");
         
-        public static Error InvalidSubjectsIds => Error.Custom(StatusCodes.Status400BadRequest, "InvalidSubjectsIds",
-            "The subjects ids are invalid.");
+        public static Error SubjectAlreadyExists => Error.Custom((int)HttpStatusCode.Conflict, "Subject.AlreadyExists",
+            "Subject already exists.");
         
-        public static Error SubjectAlreadyExists => Error.Custom(StatusCodes.Status409Conflict, "SubjectAlreadyExists",
-            "The subject already exists.");
+        public static Error SubjectNotFound => Error.Custom((int)HttpStatusCode.NotFound, "Subject.NotFound",
+            "Subject not found.");
         
-        public static Error SubjectNotFound => Error.Custom(StatusCodes.Status404NotFound, "SubjectNotFound",
-            "The subject was not found.");
+        public static Error InvalidSubjectsIds => Error.Custom((int)HttpStatusCode.BadRequest, "Subject.InvalidSubjectsIds",
+            "Invalid subjects ids.");
     }
 }

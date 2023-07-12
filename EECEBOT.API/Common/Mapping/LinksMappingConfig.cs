@@ -1,5 +1,5 @@
-﻿using EECEBOT.Application.Links.Commands.UpdateLinks;
-using EECEBOT.Application.Links.Queries.GetLinks;
+﻿using EECEBOT.Application.AcademicYears.Commands.UpdateLinks;
+using EECEBOT.Application.AcademicYears.Queries.GetLinks;
 using EECEBOT.Contracts.Links;
 using Mapster;
 

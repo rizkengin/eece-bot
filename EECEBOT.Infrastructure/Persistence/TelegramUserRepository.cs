@@ -1,7 +1,6 @@
 ﻿using EECEBOT.Application.Common.Persistence;
-using EECEBOT.Domain.Common.Enums;
-using EECEBOT.Domain.Schedule.Enums;
-using EECEBOT.Domain.TelegramUser;
+using EECEBOT.Domain.AcademicYearAggregate.Enums;
+using EECEBOT.Domain.TelegramUserAggregate;
 using Marten;
 
 namespace EECEBOT.Infrastructure.Persistence;
@@ -32,9 +31,16 @@ public class TelegramUserRepository : ITelegramUserRepository
             .FirstOrDefaultAsync(x => x.TelegramId == telegramId, cancellationToken);
     }
 
-    public void UpdateAcademicYear(TelegramUser telegramUser, AcademicYear academicYear)
+    public async Task<IEnumerable<TelegramUser>> GetByAcademicYearAsync(Year year, CancellationToken cancellationToken = default)
     {
-        telegramUser.UpdateAcademicYear(academicYear);
+        return await _documentSession.Query<TelegramUser>()
+            .Where(x => x.Year == year)
+            .ToListAsync(cancellationToken);
+    }
+
+    public void UpdateAcademicYear(TelegramUser telegramUser, Year year)
+    {
+        telegramUser.UpdateAcademicYear(year);
         _documentSession.Update(telegramUser);
     }
 

@@ -1,5 +1,5 @@
-﻿using EECEBOT.Application.Exams.Commands;
-using EECEBOT.Application.Exams.Queries.GetExams;
+﻿using EECEBOT.Application.AcademicYears.Commands.UpdateExams;
+using EECEBOT.Application.AcademicYears.Queries.GetExams;
 using EECEBOT.Contracts.Exams;
 using Mapster;
 

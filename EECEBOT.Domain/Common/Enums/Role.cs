@@ -3,6 +3,8 @@
 public enum Role
 {
     SuperAdmin,
-    Representative,
-    User,
+    FirstYearRepresentative,
+    SecondYearRepresentative,
+    ThirdYearRepresentative,
+    FourthYearRepresentative,
 }

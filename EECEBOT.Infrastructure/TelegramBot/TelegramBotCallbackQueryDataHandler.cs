@@ -3,11 +3,10 @@ using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
+using EECEBOT.Domain.AcademicYearAggregate.Enums;
+using EECEBOT.Domain.AcademicYearAggregate.ValueObjects;
 using EECEBOT.Domain.Common;
-using EECEBOT.Domain.LabSchedule.Common;
-using EECEBOT.Domain.LabSchedule.ValueObjects;
-using EECEBOT.Domain.Schedule.Enums;
-using EECEBOT.Domain.TelegramUser;
+using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -18,20 +17,17 @@ namespace EECEBOT.Infrastructure.TelegramBot;
 public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryDataHandler
 {
     private readonly ITelegramBotClient _botClient;
-    private readonly ILabScheduleRepository _labScheduleRepository;
-    private readonly IScheduleRepository _scheduleRepository;
+    private readonly IAcademicYearRepository _academicYearRepository;
     private readonly ITimeService _timeService;
 
     public TelegramBotCallbackQueryDataHandler(
         ITelegramBotClient botClient,
-        ILabScheduleRepository labScheduleRepository,
-        ITimeService timeService,
-        IScheduleRepository scheduleRepository)
+        IAcademicYearRepository academicYearRepository,
+        ITimeService timeService)
     {
         _botClient = botClient;
-        _labScheduleRepository = labScheduleRepository;
+        _academicYearRepository = academicYearRepository;
         _timeService = timeService;
-        _scheduleRepository = scheduleRepository;
     }
 
     public async Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
@@ -63,11 +59,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     
     public async Task HandleTodayNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        var schedule = await _academicYearRepository.GetScheduleAsync(user.Year, cancellationToken);
         
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (schedule is null)
+        if (schedule.Value is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -82,7 +78,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         }
         var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
 
-        var todaySessions = schedule.Sessions
+        var todaySessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
                         && s.DayOfWeek == currentTime.DayOfWeek)
             .OrderBy(d => d.Period)
@@ -106,14 +102,10 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         foreach (var session in todaySessions)
         {
-            var subject = await _scheduleRepository.GetSubjectById(session.SubjectId);
-            
-            var subjectName = subject is null ? "Unknown" : subject.Name;
-            
-            var subjectCode = subject is null ? "Unknown" : subject.Code;
+            var subject = schedule.Value.Subjects.Single(s => s.Id == session.SubjectId);
             
             message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
-            message.Append($"<b><u>Subject:</u> {subjectName} ({subjectCode})</b>\n");
+            message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
             message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
             message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
             message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
@@ -128,11 +120,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     
     public async Task HandleTomorrowNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        var schedule = await _academicYearRepository.GetScheduleAsync(user.Year, cancellationToken);
         
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
 
-        if (schedule is null)
+        if (schedule.Value is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -147,7 +139,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         }
         var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
 
-        var tomorrowSessions = schedule.Sessions
+        var tomorrowSessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
                         && s.DayOfWeek == currentTime.AddDays(1).DayOfWeek)
             .OrderBy(d => d.Period)
@@ -171,14 +163,10 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         foreach (var session in tomorrowSessions)
         {
-            var subject = await _scheduleRepository.GetSubjectById(session.SubjectId);
-            
-            var subjectName = subject is null ? "Unknown" : subject.Name;
-            
-            var subjectCode = subject is null ? "Unknown" : subject.Code;
-            
+            var subject = schedule.Value.Subjects.Single(s => s.Id == session.SubjectId);
+
             message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
-            message.Append($"<b><u>Subject:</u> {subjectName} ({subjectCode})</b>\n");
+            message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
             message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
             message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
             message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
@@ -193,11 +181,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     
     public async Task HandleNormalScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var schedule = await _scheduleRepository.GetByAcademicYearAsync(user.AcademicYear, cancellationToken);
+        var schedule = await _academicYearRepository.GetScheduleAsync(user.Year, cancellationToken);
         
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (schedule is null)
+        if (schedule.Value is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -211,7 +199,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             return;
         }
 
-        if (schedule.FileUri is null)
+        if (schedule.Value.FileUri is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule file is not yet uploaded by your academic year representative. Please be patient.</b>",
@@ -230,7 +218,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             cancellationToken: cancellationToken);
         
         await _botClient.SendDocumentAsync(user.ChatId,
-            new InputFileUrl(schedule.FileUri),
+            new InputFileUrl(schedule.Value.FileUri),
             cancellationToken: cancellationToken);
     }
 
@@ -278,12 +266,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     
     public async Task HandleMyNextLabDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var schedule = await _labScheduleRepository
-            .GetByAcademicYearAsync(user.AcademicYear, cancellationToken: cancellationToken);
+        var labSchedule = await _academicYearRepository.GetLabScheduleAsync(user.Year, cancellationToken);
 
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (schedule is null)
+        if (labSchedule.Value is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -300,9 +287,9 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         Lab? nextLab;
 
         TimeSpan nextLabEta;
-        if (schedule.SplitMethod is SplitMethod.ByBenchNumber)
+        if (labSchedule.Value.SplitMethod is SplitMethod.ByBenchNumber)
         {
-            nextLab = schedule.Labs
+            nextLab = labSchedule.Value.Labs
                 .Where(l => l.Section == user.Section && user.BenchNumber >= l.BenchNumbersRange!.Value.Start.Value
                                                       && user.BenchNumber <= l.BenchNumbersRange.Value.End.Value
                                                       && l.Date >= _timeService.GetCurrentUtcTime())
@@ -335,7 +322,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             return;
         }
         
-        nextLab = schedule.Labs
+        nextLab = labSchedule.Value.Labs
             .Where(l => l.Section == user.Section && l.Date >= _timeService.GetCurrentUtcTime())
             .OrderBy(d => d.Date)
             .FirstOrDefault();
@@ -366,12 +353,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     
     public async Task HandleLabScheduleFileDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
     {
-        var schedule = await _labScheduleRepository
-            .GetByAcademicYearAsync(user.AcademicYear, cancellationToken: cancellationToken);
+        var labSchedule = await _academicYearRepository.GetLabScheduleAsync(user.Year, cancellationToken);
 
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (schedule is null)
+        if (labSchedule.Value is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -385,7 +371,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             return;
         }
 
-        if (schedule.FileUri is null)
+        if (labSchedule.Value.FileUri is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule file is not yet uploaded by your academic year representative. Please be patient.</b>",
@@ -404,7 +390,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             cancellationToken: cancellationToken);
         
         await _botClient.SendDocumentAsync(user.ChatId,
-            new InputFileUrl(schedule.FileUri),
+            new InputFileUrl(labSchedule.Value.FileUri),
             cancellationToken: cancellationToken);
     }
 }

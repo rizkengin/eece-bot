@@ -1,7 +1,7 @@
 ﻿using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.TelegramBot;
-using EECEBOT.Domain.TelegramUser;
+using EECEBOT.Domain.TelegramUserAggregate;
 using MediatR;
 
 namespace EECEBOT.Application.TelegramBot.Queries.CallbackQueryQuery;
