@@ -51,13 +51,17 @@ public static class DependencyInjection
             .AddOrUpdate<IBackgroundTasksService>(
                 "ProcessOutboxMessages",
                 x => x.ProcessOutboxMessagesAsync(),
-                Cron.Minutely);
+                "* * * * *");
         
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
                 "RequestGithubRepoStarFromUsers",
                 x => x.RequestGithubRepoStarFromUsersAsync(),
-                Cron.Daily);
+                "0 09 * * *",
+                new RecurringJobOptions
+                {
+                    TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")
+                });
         
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
