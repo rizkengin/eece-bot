@@ -58,6 +58,18 @@ public static class DependencyInjection
                 "RequestGithubRepoStarFromUsers",
                 x => x.RequestGithubRepoStarFromUsersAsync(),
                 Cron.Daily);
+        
+        RecurringJob
+            .AddOrUpdate<IBackgroundTasksService>(
+                "ExpiredRefreshTokensCleanup",
+                x => x.ExpiredRefreshTokensCleanupAsync(),
+                Cron.Weekly(DayOfWeek.Sunday));
+        
+        RecurringJob
+            .AddOrUpdate<IBackgroundTasksService>(
+                "AcademicYearResetProcess",
+                x => x.AcademicYearResetProcessAsync(),
+                Cron.Yearly(9, 1));
     }
 
     private static IServiceCollection AddAzureBlobService(this IServiceCollection services, IConfiguration configuration)

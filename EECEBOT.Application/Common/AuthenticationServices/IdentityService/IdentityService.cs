@@ -3,7 +3,6 @@ using EECEBOT.Application.Authentication.ResultModels;
 using EECEBOT.Application.Common.AuthenticationServices.JwtTokenProvider;
 using EECEBOT.Application.Common.AuthenticationServices.PasswordHasher;
 using EECEBOT.Application.Common.Persistence;
-using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.Common.Errors;
 using ErrorOr;
 

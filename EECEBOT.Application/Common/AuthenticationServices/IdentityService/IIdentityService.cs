@@ -1,5 +1,4 @@
 ﻿using EECEBOT.Application.Authentication.ResultModels;
-using EECEBOT.Domain.UserAggregate;
 using ErrorOr;
 
 namespace EECEBOT.Application.Common.AuthenticationServices.IdentityService;

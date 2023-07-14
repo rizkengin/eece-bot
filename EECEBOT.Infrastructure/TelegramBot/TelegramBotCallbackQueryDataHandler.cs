@@ -5,7 +5,7 @@ using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.AcademicYearAggregate.ValueObjects;
-using EECEBOT.Domain.Common;
+using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot;
 using Telegram.Bot.Types;

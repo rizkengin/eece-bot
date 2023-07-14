@@ -3,7 +3,7 @@ using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
-using EECEBOT.Domain.Common;
+using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot;
 using Telegram.Bot.Types;

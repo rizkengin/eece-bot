@@ -1,6 +1,7 @@
 ﻿using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.TelegramBot;
+using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.TelegramUserAggregate;
 using MediatR;
 
@@ -48,7 +49,12 @@ public class CallbackQueryQueryHandler : IRequestHandler<CallbackQueryQuery>
         }
 
         if (request.CallbackQuery.Data is null)
+            return;
+
+        if (user.CurrentState != CurrentState.None)
         {
+            await _telegramBotMessageHandler.HandleUnknownInput(request.CallbackQuery.Message!, cancellationToken);
+            
             return;
         }
 

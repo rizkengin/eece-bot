@@ -1,4 +1,4 @@
-﻿namespace EECEBOT.Domain.Common;
+﻿namespace EECEBOT.Domain.Common.TelegramBotIds;
 
 public static class TelegramStickers
 {

@@ -49,7 +49,7 @@ public class User : AggregateRoot
         string email,
         string phoneNumber,
         string password,
-        Role role) => new User(Guid.NewGuid(),
+        Role role) => new(Guid.NewGuid(),
         new CultureInfo("en-US", false).TextInfo.ToTitleCase(firstName.ToLower()),
         new CultureInfo("en-US", false).TextInfo.ToTitleCase(lastName.ToLower()),
         email.ToLower(),
@@ -62,4 +62,16 @@ public class User : AggregateRoot
     public void RemoveRefreshToken(RefreshToken refreshToken) => _refreshTokens.Remove(refreshToken);
 
     public void AddRefreshToken(RefreshToken refreshToken) => _refreshTokens.Add(refreshToken);
+    
+    public void RefreshTokensCleanup()
+    {
+        var expiredTokens = _refreshTokens
+            .Where(t => !t.IsActive)
+            .ToList();
+        
+        foreach (var expiredToken in expiredTokens)
+        {
+            _refreshTokens.Remove(expiredToken);
+        }
+    }
 }

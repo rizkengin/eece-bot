@@ -1,6 +1,7 @@
 ﻿using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Interfaces;
+using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using EECEBOT.Infrastructure.Persistence;
 using Marten;
@@ -10,6 +11,8 @@ using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
+using Telegram.Bot.Types.ReplyMarkups;
+using User = EECEBOT.Domain.UserAggregate.User;
 
 namespace EECEBOT.Infrastructure.Services;
 
@@ -89,7 +92,7 @@ public class BackgroundTasksService : IBackgroundTasksService
             .Select(user => _telegramBotClient.
                 SendPhotoAsync(
                     user.ChatId,
-                    new InputFileUrl("https://cdn.discordapp.com/attachments/923250094755696651/1127219409090515077/Screenshot_2023-07-08_154401.png"),
+                    new InputFileUrl(TelegramFiles.GithubRepositoryStarHelperImage),
                     caption: $"<b>Hello {user.FirstName},\n" +
                              """If you like this bot, please consider giving the <a href="https://github.com/rizkengin/eece-bot">project repo</a> a star ⭐ on github.""" +
                              "\nThis will help keep the project alive and maintained. ❤️</b>\n",
@@ -98,5 +101,63 @@ public class BackgroundTasksService : IBackgroundTasksService
             .ToList();
 
         await Task.WhenAll(tasks);
+    }
+
+    public async Task ExpiredRefreshTokensCleanupAsync()
+    {
+        _logger.LogInformation("Cleaning up expired refresh tokens");
+
+        var users = await _session
+            .Query<User>()
+            .Where(u => u.RefreshTokens.Any(t => t.ExpiresOn < DateTime.UtcNow) ||
+                        u.RefreshTokens.Any(t => t.IsUsed) ||
+                        u.RefreshTokens.Any(t => t.IsInvalidated))
+            .ToListAsync();
+        
+        foreach (var user in users)
+            user.RefreshTokensCleanup();
+        
+        _session.Update<User>(users);
+        
+        await _session.SaveChangesAsync();
+    }
+
+    public async Task AcademicYearResetProcessAsync()
+    {
+        var activeTelegramUsers = await _session
+            .Query<TelegramUser>()
+            .Where(u => u.Year != Year.None)
+            .ToListAsync();
+
+        var telegramMessagesTasks = new List<Task>();
+        
+        var keyboard = new ReplyKeyboardMarkup(new[]
+        {
+            new KeyboardButton[] {"1st year"},
+            new KeyboardButton[] {"2nd year"},
+            new KeyboardButton[] {"3rd year"},
+            new KeyboardButton[] {"4th year"}
+        })
+        {
+            ResizeKeyboard = true
+        };
+        
+        foreach (var telegramUser in activeTelegramUsers)
+        {
+            telegramUser.ResetAcademicYear();
+            
+            _session.Update(telegramUser);
+            
+            telegramMessagesTasks
+                .Add(_telegramBotClient.SendTextMessageAsync(
+                    telegramUser.ChatId,
+                    "<b>Your academic year has been automatically reset!. Please select your academic year. 🎓</b>",
+                    replyMarkup: keyboard,
+                    parseMode: ParseMode.Html));
+        }
+
+        await _session.SaveChangesAsync();
+        
+        await Task.WhenAll(telegramMessagesTasks);
     }
 }
