@@ -76,11 +76,15 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             
             return;
         }
+        
         var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
+
+        var currentWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(_timeService.GetCurrentUtcTime().DateTime));
 
         var todaySessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
-                        && s.DayOfWeek == currentTime.DayOfWeek)
+                        && s.DayOfWeek == currentTime.DayOfWeek
+                        && (s.Frequency == SessionFrequency.Always || s.Frequency == currentWeekType.ToSessionFrequency()))
             .OrderBy(d => d.Period)
             .ToList();
 
@@ -108,8 +112,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
             message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
             message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
-            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
-            message.Append($"<b><u>Session Frequency:</u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(user.ChatId,
@@ -137,11 +140,15 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             
             return;
         }
+        
         var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
+
+        var currentWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(_timeService.GetCurrentUtcTime().DateTime));
 
         var tomorrowSessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
-                        && s.DayOfWeek == currentTime.AddDays(1).DayOfWeek)
+                        && s.DayOfWeek == currentTime.AddDays(1).DayOfWeek
+                        && (s.Frequency == SessionFrequency.Always || s.Frequency == currentWeekType.ToSessionFrequency()))
             .OrderBy(d => d.Period)
             .ToList();
 
@@ -169,8 +176,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
             message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
             message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
-            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n");
-            message.Append($"<b><u>Session Frequency:</u> {session.Frequency.ToFriendlyString()}</b>\n\n");
+            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(user.ChatId,

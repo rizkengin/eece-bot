@@ -67,10 +67,11 @@ public class Schedule
         foreach (var session in sessions)
             _sessions.Remove(session);
     }
+    
     public WeekType GetWeekType(DateOnly date)
     {
         var daysSpan = date.DayNumber - ScheduleStartDate.DayNumber;
-        
-        return daysSpan % 2 == 0 ? WeekType.Even : WeekType.Odd;
+        var weekNumber = daysSpan / 7;
+        return weekNumber % 2 == 0 ? WeekType.Even : WeekType.Odd;
     }
 }
