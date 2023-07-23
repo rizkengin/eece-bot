@@ -4,7 +4,6 @@ using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
-using EECEBOT.Domain.AcademicYearAggregate.ValueObjects;
 using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using Telegram.Bot;
@@ -290,46 +289,10 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             return;
         }
 
-        Lab? nextLab;
-
-        TimeSpan nextLabEta;
-        if (labSchedule.Value.SplitMethod is SplitMethod.ByBenchNumber)
-        {
-            nextLab = labSchedule.Value.Labs
-                .Where(l => l.Section == user.Section && user.BenchNumber >= l.BenchNumbersRange!.Value.Start.Value
-                                                      && user.BenchNumber <= l.BenchNumbersRange.Value.End.Value
-                                                      && l.Date >= _timeService.GetCurrentUtcTime())
-                .OrderBy(d => d.Date)
-                .FirstOrDefault();
-
-            if (nextLab is null)
-            {
-                await _botClient.SendTextMessageAsync(user.ChatId,
-                    "<b>You don't have any labs left for this academic year.</b>",
-                    parseMode: ParseMode.Html,
-                    cancellationToken: cancellationToken);
-                
-                await _botClient.SendStickerAsync(user.ChatId,
-                    new InputFileId(TelegramStickers.NoScheduleSticker),
-                    cancellationToken: cancellationToken);
-                
-                return;
-            }
-            
-            nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
-            await _botClient.SendTextMessageAsync(user.ChatId,
-                $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
-                $"<b><u>Lab date:<u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):U}</b>\n" +
-                $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
-                $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
-                parseMode: ParseMode.Html,
-                cancellationToken: cancellationToken);
-
-            return;
-        }
-        
-        nextLab = labSchedule.Value.Labs
-            .Where(l => l.Section == user.Section && l.Date >= _timeService.GetCurrentUtcTime())
+        var nextLab = labSchedule.Value.Labs
+            .Where(l => l.Section == user.Section && user.BenchNumber >= l.BenchNumbersRange.Start.Value
+                                                  && user.BenchNumber <= l.BenchNumbersRange.End.Value
+                                                  && l.Date >= _timeService.GetCurrentUtcTime())
             .OrderBy(d => d.Date)
             .FirstOrDefault();
 
@@ -346,8 +309,9 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 
             return;
         }
+            
+        var nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
         
-        nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
         await _botClient.SendTextMessageAsync(user.ChatId,
             $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
             $"<b><u>Lab date:<u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):U}</b>\n" +

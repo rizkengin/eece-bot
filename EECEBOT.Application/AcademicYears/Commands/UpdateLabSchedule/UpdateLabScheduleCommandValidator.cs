@@ -33,12 +33,10 @@ public class UpdateLabScheduleCommandValidator : AbstractValidator<UpdateLabSche
 
                 lab.RuleFor(x => x.BenchNumbersRangeStart)
                     .GreaterThanOrEqualTo(0)
-                    .LessThan(x => x.BenchNumbersRangeEnd)
-                    .When(x => x.BenchNumbersRangeEnd > 0);
+                    .LessThan(x => x.BenchNumbersRangeEnd);
 
                 lab.RuleFor(x => x.BenchNumbersRangeEnd)
-                    .GreaterThan(x => x.BenchNumbersRangeStart)
-                    .When(x => x.BenchNumbersRangeEnd > 0);
+                    .GreaterThan(x => x.BenchNumbersRangeStart);
             });
 
         RuleFor(x => x.Year)

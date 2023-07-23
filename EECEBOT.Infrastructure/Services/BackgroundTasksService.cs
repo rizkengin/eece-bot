@@ -4,6 +4,9 @@ using EECEBOT.Domain.Common.Interfaces;
 using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using EECEBOT.Infrastructure.Persistence;
+using EECEBOT.Infrastructure.Services.AcademicYearsResults;
+using Hangfire;
+using HtmlAgilityPack;
 using Marten;
 using MediatR;
 using Microsoft.Extensions.Logging;
@@ -34,7 +37,8 @@ public class BackgroundTasksService : IBackgroundTasksService
         _telegramBotClient = telegramBotClient;
         _logger = logger;
     }
-
+    
+    [DisableConcurrentExecution(20)]
     public async Task ProcessOutboxMessagesAsync()
     {
         _logger.LogInformation("Processing outbox messages");
@@ -68,7 +72,12 @@ public class BackgroundTasksService : IBackgroundTasksService
             }
             catch (Exception e)
             {
-                _logger.LogError(e, "Unable to publish domain event {DomainEvent} from outbox message {MessageId}", domainEvent.GetType().Name, outboxMessage.Id);
+                _logger.LogError(e,
+                        "Unable to publish domain event {DomainEvent} from outbox message {MessageId}",
+                        domainEvent.GetType().Name,
+                        outboxMessage.Id);
+                
+                outboxMessage.Error = e.Message;
             }
             
             outboxMessage.ProcessedOnUtc = DateTime.UtcNow;
@@ -159,5 +168,16 @@ public class BackgroundTasksService : IBackgroundTasksService
         await _session.SaveChangesAsync();
         
         await Task.WhenAll(telegramMessagesTasks);
+    }
+
+    public async Task CheckForAcademicYearsResultsAsync()
+    {
+        var academicYearsCurrentResults = await _session
+                                       .Query<AcademicYearResult>()
+                                       .ToListAsync();
+
+        var web = new HtmlWeb();
+
+        var resultsHtmlPage = await web.LoadFromWebAsync("http://www.results.eng.cu.edu.eg/");
     }
 }

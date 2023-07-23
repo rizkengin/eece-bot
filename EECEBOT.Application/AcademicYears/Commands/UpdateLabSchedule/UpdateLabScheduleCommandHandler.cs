@@ -38,7 +38,7 @@ internal sealed class UpdateLabScheduleCommandHandler : IRequestHandler<UpdateLa
            _timeService.ConvertAppDateTimeToUtcDateTimeOffset(DateTime.ParseExact(x.Date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture)),
            x.Location,
            Enum.Parse<Section>(x.Section, ignoreCase: true),
-           x.BenchNumbersRangeEnd > x.BenchNumbersRangeStart ? new Range(new Index(x.BenchNumbersRangeStart), new Index(x.BenchNumbersRangeEnd)) : null))
+           new Range(new Index(x.BenchNumbersRangeStart), new Index(x.BenchNumbersRangeEnd))))
            .ToList();
 
        var updateResult = academicYear.TryUpdateLabScheduleLabs(labs);

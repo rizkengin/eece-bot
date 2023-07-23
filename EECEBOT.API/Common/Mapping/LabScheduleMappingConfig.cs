@@ -11,10 +11,8 @@ public class LabScheduleMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<(CreateLabScheduleRequest createLabScheduleRequest, string year), CreateLabScheduleCommand>()
-            .MapWith(src => new CreateLabScheduleCommand(
-                src.year,
-                src.createLabScheduleRequest.SplitMethod));
+        config.NewConfig<string, CreateLabScheduleCommand>()
+            .MapWith(src => new CreateLabScheduleCommand(src));
         
         config.NewConfig<LabRequest,LabUpdateRequest>()
             .MapWith(src => new LabUpdateRequest(

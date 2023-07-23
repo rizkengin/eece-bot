@@ -6,4 +6,5 @@ public interface IBackgroundTasksService
     Task RequestGithubRepoStarFromUsersAsync();
     Task ExpiredRefreshTokensCleanupAsync();
     Task AcademicYearResetProcessAsync();
+    Task CheckForAcademicYearsResultsAsync();
 }

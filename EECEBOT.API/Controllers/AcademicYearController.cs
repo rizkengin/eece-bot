@@ -213,9 +213,9 @@ public class AcademicYearController : ApiController
     }
     
     [HttpPost("lab-schedule")]
-    public async Task<IActionResult> CreateLabSchedule(string year, CreateLabScheduleRequest request)
+    public async Task<IActionResult> CreateLabSchedule(string year)
     {
-        var command = _mapper.Map<CreateLabScheduleCommand>((request, year));
+        var command = _mapper.Map<CreateLabScheduleCommand>(year);
         
         var result = await _sender.Send(command);
 

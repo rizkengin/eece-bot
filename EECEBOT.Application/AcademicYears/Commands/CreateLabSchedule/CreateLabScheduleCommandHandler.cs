@@ -33,7 +33,7 @@ internal sealed class CreateLabScheduleCommandHandler : IRequestHandler<CreateLa
         if (academicYear.LabSchedule is not null)
             return Errors.LabScheduleErrors.LabScheduleAlreadyExists;
         
-        var labSchedule = LabSchedule.Create(Enum.Parse<SplitMethod>(request.SplitMethod, ignoreCase: true));
+        var labSchedule = LabSchedule.Create();
         
         academicYear.SetLabSchedule(labSchedule);
         

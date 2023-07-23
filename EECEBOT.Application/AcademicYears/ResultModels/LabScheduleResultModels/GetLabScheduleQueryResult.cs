@@ -4,7 +4,6 @@ public sealed record GetLabScheduleQueryResult(LabScheduleResult LabSchedule);
 
 public sealed record LabScheduleResult(
     Guid Id,
-    string SplitMethod,
     string? FileUri,
     IEnumerable<LabResult> Labs);
     

@@ -19,9 +19,11 @@
       <PackageReference Include="Hangfire.AspNetCore" Version="1.8.3" />
       <PackageReference Include="Hangfire.Core" Version="1.8.3" />
       <PackageReference Include="Hangfire.PostgreSql" Version="1.19.12" />
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.50" />
       <PackageReference Include="Marten" Version="6.0.4" />
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
+      <PackageReference Include="Microsoft.Playwright" Version="1.36.0" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

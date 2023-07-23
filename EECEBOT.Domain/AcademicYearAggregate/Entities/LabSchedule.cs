@@ -1,5 +1,4 @@
-﻿using EECEBOT.Domain.AcademicYearAggregate.Enums;
-using EECEBOT.Domain.AcademicYearAggregate.ValueObjects;
+﻿using EECEBOT.Domain.AcademicYearAggregate.ValueObjects;
 
 namespace EECEBOT.Domain.AcademicYearAggregate.Entities;
 
@@ -7,14 +6,11 @@ public class LabSchedule
 {
     private readonly List<Lab> _labs = new();
     
-    private LabSchedule(Guid id,
-        SplitMethod splitMethod)
+    private LabSchedule(Guid id)
     {
         Id = id;
-        SplitMethod = splitMethod;
     }
     public Guid Id { get; private set; }
-    public SplitMethod SplitMethod { get; private set; }
     public Uri? FileUri { get; private set; }
 
     public IReadOnlyCollection<Lab> Labs
@@ -27,7 +23,7 @@ public class LabSchedule
         }
     }
 
-    public static LabSchedule Create(SplitMethod splitMethod) => new(Guid.NewGuid(), splitMethod);
+    public static LabSchedule Create() => new(Guid.NewGuid());
     internal void UpdateLabs(IEnumerable<Lab> labs) => Labs = labs.ToList();
     internal void UpdateFileUri(Uri fileUri) => FileUri = fileUri;
 }

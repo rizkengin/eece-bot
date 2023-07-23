@@ -87,11 +87,7 @@ public class AcademicYear : AggregateRoot
         if (LabSchedule is null)
             return Errors.ScheduleErrors.ScheduleNotFound;
 
-        if (LabSchedule.SplitMethod is SplitMethod.BySection && labs.Exists(x => x.BenchNumbersRange.HasValue))
-            return Errors.LabScheduleErrors.LabScheduleSplitMethodIsBySectionButBenchNumbersRangeIsNotNull;
-        
-        if (LabSchedule.SplitMethod is SplitMethod.ByBenchNumber && labs.Exists(x => !x.BenchNumbersRange.HasValue 
-                || x.BenchNumbersRange.Value.End.Value <= x.BenchNumbersRange.Value.Start.Value))
+        if (labs.Exists(x => x.BenchNumbersRange.End.Value <= x.BenchNumbersRange.Start.Value))
             return Errors.LabScheduleErrors.LabScheduleSplitMethodIsByBenchNumberButBenchNumbersRangeIsInvalid;
         
         LabSchedule.UpdateLabs(labs);

@@ -33,14 +33,13 @@ internal sealed class GetLabScheduleQueryHandler : IRequestHandler<GetLabSchedul
 
         return new GetLabScheduleQueryResult(new LabScheduleResult(
             labScheduleResult.Value.Id,
-            labScheduleResult.Value.SplitMethod.ToFriendlyString(),
             labScheduleResult.Value.FileUri?.ToString(),
             labScheduleResult.Value.Labs.Select(x => new LabResult(
                 x.Name,
                 _timeService.ConvertUtcDateTimeOffsetToAppDateTime(x.Date).ToString("dd-MM-yyyy HH:mm"),
                 x.Location,
                 x.Section.ToFriendlyString(),
-                x.BenchNumbersRange.HasValue ? x.BenchNumbersRange.Value.Start.Value : 0,
-                x.BenchNumbersRange.HasValue ? x.BenchNumbersRange.Value.End.Value : 0))));
+                x.BenchNumbersRange.Start.Value,
+                x.BenchNumbersRange.End.Value))));
     }
 }
