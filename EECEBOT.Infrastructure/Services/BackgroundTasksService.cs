@@ -10,6 +10,7 @@ using HtmlAgilityPack;
 using Marten;
 using MediatR;
 using Microsoft.Extensions.Logging;
+using Microsoft.Playwright;
 using Newtonsoft.Json;
 using Telegram.Bot;
 using Telegram.Bot.Types;
@@ -172,12 +173,31 @@ public class BackgroundTasksService : IBackgroundTasksService
 
     public async Task CheckForAcademicYearsResultsAsync()
     {
-        var academicYearsCurrentResults = await _session
-                                       .Query<AcademicYearResult>()
-                                       .ToListAsync();
+        using var playwright = await Playwright.CreateAsync();
 
-        var web = new HtmlWeb();
+        await using var browser = await playwright
+            .Chromium
+            .LaunchAsync(
+                new BrowserTypeLaunchOptions
+                {
+                    Headless = true
+                });
 
-        var resultsHtmlPage = await web.LoadFromWebAsync("http://www.results.eng.cu.edu.eg/");
+        var page = await browser.NewPageAsync();
+           
+        await page.GotoAsync("http://www.results.eng.cu.edu.eg/");
+
+        var resultsHtmlPage = await page.ContentAsync();
+
+        var htmlDocument = new HtmlDocument();
+            
+        htmlDocument.LoadHtml(resultsHtmlPage);
+            
+        var table = htmlDocument
+            .DocumentNode
+            .SelectSingleNode("""//*[@id="AutoNumber4"]""")
+            .ChildNodes["tbody"]
+            .ChildNodes[2]
+            .InnerText;
     }
 }
