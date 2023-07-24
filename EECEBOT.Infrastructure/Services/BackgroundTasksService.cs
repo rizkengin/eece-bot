@@ -4,7 +4,6 @@ using EECEBOT.Domain.Common.Interfaces;
 using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
 using EECEBOT.Infrastructure.Persistence;
-using EECEBOT.Infrastructure.Services.AcademicYearsResults;
 using Hangfire;
 using HtmlAgilityPack;
 using Marten;
@@ -170,7 +169,8 @@ public class BackgroundTasksService : IBackgroundTasksService
         
         await Task.WhenAll(telegramMessagesTasks);
     }
-
+    
+    [DisableConcurrentExecution(20)]
     public async Task CheckForAcademicYearsResultsAsync()
     {
         using var playwright = await Playwright.CreateAsync();
@@ -199,5 +199,7 @@ public class BackgroundTasksService : IBackgroundTasksService
             .ChildNodes["tbody"]
             .ChildNodes[2]
             .InnerText;
+
+        _logger.LogInformation("{Table}", table);
     }
 }

@@ -74,6 +74,12 @@ public static class DependencyInjection
                 "AcademicYearResetProcess",
                 x => x.AcademicYearResetProcessAsync(),
                 Cron.Yearly(9, 1));
+        
+        RecurringJob
+            .AddOrUpdate<IBackgroundTasksService>(
+                "ResultsService",
+                x => x.CheckForAcademicYearsResultsAsync(),
+                Cron.Minutely);
     }
 
     private static IServiceCollection AddAzureBlobService(this IServiceCollection services, IConfiguration configuration)
