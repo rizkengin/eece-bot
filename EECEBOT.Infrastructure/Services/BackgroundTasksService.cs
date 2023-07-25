@@ -171,6 +171,7 @@ public class BackgroundTasksService : IBackgroundTasksService
     }
     
     [DisableConcurrentExecution(20)]
+    [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Delete)]
     public async Task CheckForAcademicYearsResultsAsync()
     {
         using var playwright = await Playwright.CreateAsync();
