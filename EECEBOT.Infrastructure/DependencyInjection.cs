@@ -143,7 +143,7 @@ public static class DependencyInjection
 
     public static IServiceCollection AddAzureVaultConfiguration(this IServiceCollection services, ConfigurationManager configuration)
     {
-        var keyVaultUrl = new Uri(Environment.GetEnvironmentVariable("eece_bot_azure_key_vault_url")!); // Make sure this is set in system environment variables
+        var keyVaultUrl = new Uri(configuration.GetValue<string>("eece_bot_azure_key_vault_url")!);
         var azureCredentials = new DefaultAzureCredential();
         configuration.AddAzureKeyVault(keyVaultUrl, azureCredentials);
 

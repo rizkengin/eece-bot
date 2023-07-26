@@ -25,6 +25,7 @@
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.6.3" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="7.0.0" />
       <PackageReference Include="Microsoft.Playwright" Version="1.36.0" />
+      <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.18.1" />
       <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>

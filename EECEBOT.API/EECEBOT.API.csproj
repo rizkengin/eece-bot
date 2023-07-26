@@ -4,6 +4,8 @@
         <TargetFramework>net7.0</TargetFramework>
         <Nullable>enable</Nullable>
         <ImplicitUsings>enable</ImplicitUsings>
+        <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+        <UserSecretsId>1a834e97-5c56-44d0-902b-5762e10bbd48</UserSecretsId>
     </PropertyGroup>
 
     <ItemGroup>
@@ -24,6 +26,12 @@
       <ProjectReference Include="..\EECEBOT.Contracts\EECEBOT.Contracts.csproj" />
       <ProjectReference Include="..\EECEBOT.Domain\EECEBOT.Domain.csproj" />
       <ProjectReference Include="..\EECEBOT.Infrastructure\EECEBOT.Infrastructure.csproj" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="..\.dockerignore">
+        <Link>.dockerignore</Link>
+      </Content>
     </ItemGroup>
 
 </Project>
