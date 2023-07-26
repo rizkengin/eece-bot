@@ -198,9 +198,8 @@ public class BackgroundTasksService : IBackgroundTasksService
             .DocumentNode
             .SelectSingleNode("""//*[@id="AutoNumber4"]""")
             .ChildNodes["tbody"]
-            .ChildNodes[2]
-            .InnerText;
+            .ChildNodes[2];
 
-        _logger.LogInformation("{Table}", table);
+        _logger.LogInformation("{Table}", table.InnerText);
     }
 }
