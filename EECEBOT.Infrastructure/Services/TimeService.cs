@@ -28,6 +28,10 @@ public class TimeService : ITimeService
             UtcTimeZoneId);
     public bool IsAppTimeZoneIdValid()
     {
+        var systemTimeZones = TimeZoneInfo.GetSystemTimeZones().ToList();
+        
+        systemTimeZones.ForEach(x => _logger.LogInformation("System time zone: {DisplayName} {Id}", x.DisplayName, x.Id));
+        
         try
         {
             TimeZoneInfo.FindSystemTimeZoneById(AppTimeZoneId);
