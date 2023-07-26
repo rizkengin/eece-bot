@@ -1,4 +1,4 @@
-﻿FROM mcr.microsoft.com/playwright/dotnet:v1.35.0-jammy AS base
+﻿FROM mcr.microsoft.com/playwright/dotnet:v1.36.0-jammy AS base
 RUN apt-get update \
     && apt-get install -y dotnet-sdk-7.0 \
     && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata 
