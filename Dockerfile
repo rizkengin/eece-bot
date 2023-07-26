@@ -3,7 +3,7 @@ RUN apt-get update \
     && apt-get install -y dotnet-sdk-7.0 \
     && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata 
 WORKDIR /app
-EXPOSE 80
+EXPOSE 8080
 
 FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
 WORKDIR /src
