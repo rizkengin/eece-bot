@@ -2,6 +2,6 @@
 
 public static class TimeZoneIds
 {
-    public const string Egypt = "Egypt Standard Time";
+    public const string Egypt = "Africa/Cairo";
     public const string Utc = "UTC";
 }
