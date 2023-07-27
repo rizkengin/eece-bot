@@ -1,5 +1,6 @@
 ﻿using EECEBOT.Application.TelegramBot.Queries.CallbackQueryQuery;
 using EECEBOT.Application.TelegramBot.Queries.MessageQuery;
+using EECEBOT.Application.TelegramBot.Queries.TelegramQueryExceptionQuery;
 using EECEBOT.Application.TelegramBot.Queries.UnknownUpdateQuery;
 using MediatR;
 using Microsoft.AspNetCore.Mvc;
@@ -21,13 +22,27 @@ public class TelegramBotController : ControllerBase
     [HttpPost("webhook")]
     public async Task Webhook([FromBody] Update update)
     {
-        var handler = update switch
+        try
         {
-            { Message: { } message }                       => _sender.Send(new MessageReceivedQuery(message)),
-            { CallbackQuery: { } callbackQuery }           => _sender.Send(new CallbackQueryQuery(callbackQuery)),
-            _                                              => _sender.Send(new UnknownUpdateQuery(update))
-        };
+            var handler = update switch
+            {
+                { Message: { } message }                       => _sender.Send(new MessageReceivedQuery(message)),
+                { CallbackQuery: { } callbackQuery }           => _sender.Send(new CallbackQueryQuery(callbackQuery)),
+                _                                              => _sender.Send(new UnknownUpdateQuery(update))
+            };
 
-        await handler;
+            await handler;
+        }
+        catch (Exception e)
+        {
+            try
+            {
+                await _sender.Send(new TelegramQueryExceptionQuery(e));
+            }
+            catch (Exception exception)
+            {
+                // ignored
+            }
+        }
     }
 }

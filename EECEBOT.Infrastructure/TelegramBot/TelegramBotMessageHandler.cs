@@ -271,6 +271,8 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
                 new InputFileId(TelegramStickers.HappyDogSticker),
                 replyMarkup: new ReplyKeyboardRemove(),
                 cancellationToken: cancellationToken);
+            
+            return;
         }
         
         var linksMessage = new StringBuilder();
