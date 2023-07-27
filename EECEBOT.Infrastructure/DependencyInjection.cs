@@ -8,6 +8,7 @@ using EECEBOT.Domain.UserAggregate;
 using EECEBOT.Infrastructure.Persistence;
 using EECEBOT.Infrastructure.Persistence.Interceptors;
 using EECEBOT.Infrastructure.Services;
+using EECEBOT.Infrastructure.Services.AcademicYearsResults;
 using EECEBOT.Infrastructure.TelegramBot;
 using Hangfire;
 using Hangfire.PostgreSql;
@@ -132,6 +133,11 @@ public static class DependencyInjection
             options.Schema.For<OutboxMessage>()
                 .DocumentAlias("Outbox_Messages")
                 .Identity(x => x.Id);
+
+            options.Schema.For<AcademicYearResult>()
+                .DocumentAlias("Academic_Years_Results")
+                .Identity(x => x.Id)
+                .Index(x => x.AcademicYear);
 
             options.Listeners.Add(new ConvertDomainEventsToOutboxMessagesInterceptor());
         }).UseLightweightSessions()

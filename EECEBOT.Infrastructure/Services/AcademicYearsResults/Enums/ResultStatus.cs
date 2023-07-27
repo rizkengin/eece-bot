@@ -3,6 +3,5 @@
 public enum ResultStatus
 {
     Available,
-    NotAvailable,
-    Error
+    UnAvailable
 }
