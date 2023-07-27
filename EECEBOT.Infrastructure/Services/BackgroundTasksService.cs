@@ -267,8 +267,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(firstYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 firstYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -288,8 +288,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(firstYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 firstYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -322,8 +322,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(secondYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 secondYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -343,8 +343,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(secondYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 secondYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -377,8 +377,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(thirdYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 thirdYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نتيجة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نتيجة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -398,8 +398,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(thirdYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 thirdYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -432,8 +432,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(fourthYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 fourthYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
@@ -453,8 +453,8 @@ public class BackgroundTasksService : IBackgroundTasksService
                         .Select(fourthYearUser => _telegramBotClient
                             .SendTextMessageAsync(
                                 fourthYearUser.ChatId,
-                                "🚨🚨🚨\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n" +
+                                "🚨🚨🚨\n\n" +
+                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
