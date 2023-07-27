@@ -378,7 +378,7 @@ public class BackgroundTasksService : IBackgroundTasksService
                             .SendTextMessageAsync(
                                 thirdYearUser.ChatId,
                                 "🚨🚨🚨\n\n" +
-                                "<b>نتيجة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
                 
