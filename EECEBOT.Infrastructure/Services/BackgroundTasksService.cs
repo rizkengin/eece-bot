@@ -119,12 +119,16 @@ public class BackgroundTasksService : IBackgroundTasksService
     {
         _logger.LogInformation("Cleaning up expired refresh tokens");
 
-        var users = await _session
+        var users = _session
             .Query<User>()
+            .AsEnumerable()
             .Where(u => u.RefreshTokens.Any(t => t.ExpiresOn < DateTimeOffset.UtcNow) ||
                         u.RefreshTokens.Any(t => t.IsUsed) ||
                         u.RefreshTokens.Any(t => t.IsInvalidated))
-            .ToListAsync();
+            .ToList();
+        
+        if (users.Count == 0)
+            return;
         
         foreach (var user in users)
             user.RefreshTokensCleanup();
