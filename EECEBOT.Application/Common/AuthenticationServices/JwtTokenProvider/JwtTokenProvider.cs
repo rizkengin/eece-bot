@@ -48,7 +48,7 @@ public class JwtTokenProvider : IJwtTokenProvider
             issuer: _jwtSettings.Issuer,
             audience: _jwtSettings.Audience,
             claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(_jwtSettings.ExpiryInMinutes),
+            expires: DateTimeOffset.UtcNow.DateTime.AddMinutes(_jwtSettings.ExpiryInMinutes),
             signingCredentials: signingCredentials);
 
         return new JwtSecurityTokenHandler().WriteToken(securityToken);
@@ -60,7 +60,7 @@ public class JwtTokenProvider : IJwtTokenProvider
 
         var tokenString = Convert.ToBase64String(RandomNumberGenerator.GetBytes(64));
 
-        var refreshToken = RefreshToken.Create(tokenString, token.Id, DateTime.UtcNow.AddDays(7));
+        var refreshToken = RefreshToken.Create(tokenString, token.Id, DateTimeOffset.UtcNow.AddDays(7));
 
         return refreshToken;
     }
@@ -122,7 +122,7 @@ public class JwtTokenProvider : IJwtTokenProvider
 
         await _userRepository.AddRefreshTokenAsync(user, newRefreshToken, userRefreshToken, cancellationToken);
         
-        return new RefreshTokenResult(newJwtToken, newRefreshToken.Token, newRefreshToken.ExpiresOn);
+        return new RefreshTokenResult(newJwtToken, newRefreshToken.Token, newRefreshToken.ExpiresOn.DateTime);
     }
 
     public async Task<ErrorOr<User>> RevokeRefreshTokenAsync(string token, string refreshToken, CancellationToken cancellationToken = default)

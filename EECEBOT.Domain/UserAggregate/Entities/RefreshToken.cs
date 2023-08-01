@@ -8,7 +8,7 @@ public class RefreshToken
         string jwtId,
         bool isUsed,
         bool isInvalidated,
-        DateTime expiresOn)
+        DateTimeOffset expiresOn)
     {
         Id = id;
         Token = token;
@@ -21,7 +21,7 @@ public class RefreshToken
     public static RefreshToken Create(
         string token,
         string jwtId,
-        DateTime expiresOn)
+        DateTimeOffset expiresOn)
     {
         return new RefreshToken(Guid.NewGuid(), token, jwtId, false, false, expiresOn);
     }
@@ -30,20 +30,20 @@ public class RefreshToken
     public string JwtId { get; private set; }
     public bool IsUsed { get; private set; }
     public bool IsInvalidated { get; private set; }
-    public DateTime ExpiresOn { get; private set; }
-    public DateTime? RevokedOn { get; private set; }
+    public DateTimeOffset ExpiresOn { get; private set; }
+    public DateTimeOffset? RevokedOn { get; private set; }
 
-    public bool IsExpired => DateTime.UtcNow >= ExpiresOn;
+    public bool IsExpired => DateTimeOffset.UtcNow >= ExpiresOn;
     public bool IsActive => !IsExpired && !IsUsed && !IsInvalidated;
     public void Expire()
     {
         IsUsed = true;
-        RevokedOn = DateTime.UtcNow;
+        RevokedOn = DateTimeOffset.UtcNow;
     }
 
     public void Invalidate()
     {
         IsInvalidated = true;
-        RevokedOn = DateTime.UtcNow;
+        RevokedOn = DateTimeOffset.UtcNow;
     }
 }

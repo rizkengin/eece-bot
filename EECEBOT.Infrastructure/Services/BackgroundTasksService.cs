@@ -121,7 +121,7 @@ public class BackgroundTasksService : IBackgroundTasksService
 
         var users = await _session
             .Query<User>()
-            .Where(u => u.RefreshTokens.Any(t => t.ExpiresOn < DateTime.UtcNow) ||
+            .Where(u => u.RefreshTokens.Any(t => t.ExpiresOn < DateTimeOffset.UtcNow) ||
                         u.RefreshTokens.Any(t => t.IsUsed) ||
                         u.RefreshTokens.Any(t => t.IsInvalidated))
             .ToListAsync();
