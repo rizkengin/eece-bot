@@ -104,9 +104,10 @@ public class BackgroundTasksService : IBackgroundTasksService
                 SendPhotoAsync(
                     user.ChatId,
                     new InputFileUrl(TelegramFiles.GithubRepositoryStarHelperImage),
-                    caption: $"<b>Hello {user.FirstName},\n" +
-                             """If you like this bot, please consider giving the <a href="https://github.com/rizkengin/eece-bot">project repo</a> a star ⭐ on github.""" +
-                             "\nThis will help keep the project alive and maintained. ❤️</b>\n",
+                    caption: "<b>اهلا اهلا 😁😁\n" +
+                             "اتمني تكون تجربة استخدام البوت فيها استفادة وتوفير وقت ليك/ي. 👏" +
+                             """لو شايف انك مستفيد من البوت وعايزه يفضل شغال ويتعمله ابديتس دايما ياريت تاخد من وقتك دقيقه وتعمل ستار <a> href="https://github.com/rizkengin/eece-bot">للريبو</a> الخاصه بالبوت. ⭐⭐""" +
+                             "\nدا هيساعد كتير جدا ان البوت يفضل شغال ويتعمله تحديثات اول بـ اول. ❤️</b>\n",
                     parseMode: ParseMode.Html))
             .Cast<Task>()
             .ToList();

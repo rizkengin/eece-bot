@@ -4,6 +4,7 @@ using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.TelegramUserAggregate;
 using MediatR;
+using Microsoft.Extensions.Logging;
 
 namespace EECEBOT.Application.TelegramBot.Queries.CallbackQueryQuery;
 
@@ -13,21 +14,28 @@ public class CallbackQueryQueryHandler : IRequestHandler<CallbackQueryQuery>
     private readonly ITelegramUserRepository _telegramUserRepository;
     private readonly ITelegramBotMessageHandler _telegramBotMessageHandler;
     private readonly IUnitOfWork _unitOfWork;
+    private readonly ILogger<CallbackQueryQueryHandler> _logger;
 
     public CallbackQueryQueryHandler(
         ITelegramBotCallbackQueryDataHandler telegramBotCallbackQueryDataHandler,
         ITelegramUserRepository telegramUserRepository,
         ITelegramBotMessageHandler telegramBotMessageHandler,
-        IUnitOfWork unitOfWork)
+        IUnitOfWork unitOfWork,
+        ILogger<CallbackQueryQueryHandler> logger)
     {
         _telegramBotCallbackQueryDataHandler = telegramBotCallbackQueryDataHandler;
         _telegramUserRepository = telegramUserRepository;
         _telegramBotMessageHandler = telegramBotMessageHandler;
         _unitOfWork = unitOfWork;
+        _logger = logger;
     }
 
     public async Task Handle(CallbackQueryQuery request, CancellationToken cancellationToken)
     {
+        _logger.LogInformation("CallbackQuery received from chatId: {ChatId} with data: {Data}",
+            request.CallbackQuery.Message?.Chat.Id,
+            request.CallbackQuery.Data);
+        
         var user = await _telegramUserRepository.GetByTelegramIdAsync(request.CallbackQuery.From.Id, cancellationToken);
 
         if (user is null)
