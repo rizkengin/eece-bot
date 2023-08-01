@@ -39,7 +39,7 @@ public class TelegramBotController : ControllerBase
             {
                 await _sender.Send(new TelegramQueryExceptionQuery(e));
             }
-            catch (Exception exception)
+            catch (Exception)
             {
                 // ignored
             }

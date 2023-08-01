@@ -159,10 +159,17 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         var exams = await _academicYearRepository
             .GetExamsAsync(user.Year, cancellationToken);
         
-        if (exams.Value.ToList().Count == 0)
+        var upcomingExams = exams.IsError ? 
+            null : 
+            exams.Value
+                .Where(e => e.Date > _timeService.GetCurrentUtcTime())
+                .OrderBy(e => e.Date)
+                .ToList();
+        
+        if (upcomingExams is null || upcomingExams.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "<b>You have no exams scheduled yet!</b>",
+                "<b>There are no upcoming exams. 📚</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -176,7 +183,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         var examsMessage = new StringBuilder();
         
-        foreach (var exam in exams.Value)
+        foreach (var exam in upcomingExams)
         {
             var timeLeft = exam.GetTimeLeft();
             
@@ -199,13 +206,17 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         var deadlines = await _academicYearRepository
             .GetDeadlinesAsync(user.Year, cancellationToken);
 
-        if (deadlines.Value
+        var upcomingDeadlines = deadlines.IsError ?
+            null :
+            deadlines.Value
                 .Where(x => x.DueDate >= _timeService.GetCurrentUtcTime())
-                .ToList()
-                .Count == 0)
+                .OrderBy(x => x.DueDate)
+                .ToList();
+        
+        if (upcomingDeadlines is null || upcomingDeadlines.Count == 0)
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "<b>You have no deadlines yet!</b>",
+                "<b>There are no upcoming deadlines. 📚</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
@@ -220,7 +231,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         
         var deadlinesMessage = new StringBuilder();
         
-        foreach (var deadline in deadlines.Value)
+        foreach (var deadline in upcomingDeadlines)
         {
             var timeLeft = deadline.GetTimeLeft();
             
@@ -259,10 +270,10 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         var links = await _academicYearRepository
             .GetLinksAsync(user.Year, cancellationToken);
 
-        if (links.Value.ToList().Count == 0)
+        if (links.IsError || !links.Value.Any())
         {
             await _botClient.SendTextMessageAsync(message.Chat.Id,
-                "<b>There are no links available for your academic year yet!</b>",
+                "<b>There are no links available. 📚</b>",
                 replyMarkup: new ReplyKeyboardRemove(),
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
