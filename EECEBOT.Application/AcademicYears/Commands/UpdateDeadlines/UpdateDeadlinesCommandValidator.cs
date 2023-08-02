@@ -9,7 +9,7 @@ public class UpdateDeadlinesCommandValidator : AbstractValidator<UpdateDeadlines
     public UpdateDeadlinesCommandValidator()
     {
         RuleFor(x=> x.Deadlines)
-            .NotEmpty()
+            .NotNull()
             .WithMessage("Deadlines are required.");
 
         RuleForEach(x => x.Deadlines)
@@ -19,8 +19,8 @@ public class UpdateDeadlinesCommandValidator : AbstractValidator<UpdateDeadlines
             .WithMessage("Deadline description is required.")
             .Must(x => !string.IsNullOrWhiteSpace(x.DueDate))
             .WithMessage("Deadline date is required.")
-            .Must(x => DateTime.TryParseExact(x.DueDate, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture,
-                DateTimeStyles.None, out _));   
+            .Must(x => DateTime.TryParseExact(x.DueDate, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
+            .WithMessage("Date format is invalid. Please use dd-MM-yyyy HH:mm format.");   
         
         RuleFor(x => x.Year)
             .Must(x => Enum.TryParse<Year>(x, ignoreCase:true, out _))

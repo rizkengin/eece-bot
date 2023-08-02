@@ -12,16 +12,16 @@ public class ExamsMappingConfig : IRegister
         config.NewConfig<string, GetExamsQuery>()
             .MapWith(src => new GetExamsQuery(src));
         
-        config.NewConfig<ExamRequest, (string name, string examType, string description, string? location, string date)>()
-            .Map(dest => dest.name, src => src.Name)
-            .Map(dest => dest.examType, src => src.ExamType)
-            .Map(dest => dest.description, src => src.Description)
-            .Map(dest => dest.location, src => src.Location)
-            .Map(dest => dest.date, src => src.Date);
+        config.NewConfig<ExamRequest, UpdateExamRequest>()
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.ExamType, src => src.ExamType)
+            .Map(dest => dest.Description, src => src.Description)
+            .Map(dest => dest.Location, src => src.Location)
+            .Map(dest => dest.Date, src => src.Date);
 
         config.NewConfig<(UpdateExamsRequest UpdateExamsRequest, string academicYear), UpdateExamsCommand>()
-            .MapWith(src 
-                => new UpdateExamsCommand(src.UpdateExamsRequest.Exams.Adapt<List<(string name, string examType, string description, string? location, string date)>>(config)
-                    , src.academicYear));
+            .MapWith(src => new UpdateExamsCommand(
+                src.UpdateExamsRequest.Exams.Adapt<List<UpdateExamRequest>>(config),
+                src.academicYear));
     }
 }

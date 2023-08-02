@@ -26,8 +26,8 @@ internal sealed class UpdateLinksCommandHandler : IRequestHandler<UpdateLinksCom
         if (academicYear is null)
             return Errors.AcademicYearErrors.AcademicYearNotFound;
 
-        var links = request.LinksTuples
-            .Select(x => Link.Create(x.name, new Uri(x.url)))
+        var links = request.Links
+            .Select(x => Link.Create(x.Name, new Uri(x.Url)))
             .ToList();
         
         academicYear.UpdateLinks(links);

@@ -8,6 +8,10 @@ public class UpdateLabScheduleCommandValidator : AbstractValidator<UpdateLabSche
 {
     public UpdateLabScheduleCommandValidator()
     {
+        RuleFor(x => x.Labs)
+            .NotNull()
+            .WithMessage("Labs are required.");
+        
         RuleForEach(x => x.Labs)
             .ChildRules(lab =>
             {

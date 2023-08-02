@@ -37,8 +37,7 @@ public class UpdateScheduleCommandValidator : AbstractValidator<UpdateScheduleCo
             .WithMessage("Frequency is invalid.")
             .Must(x => x.Sections.Any())
             .WithMessage("Sections are required.")
-            .ChildRules(x 
-                => x.RuleForEach(y => y.Sections)
+            .ChildRules(x => x.RuleForEach(y => y.Sections)
                 .Must(s => Enum.TryParse<Section>(s, ignoreCase: true, out _))
                 .WithMessage("Section is invalid."));
         

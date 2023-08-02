@@ -35,11 +35,11 @@ public class UpdateExamsCommandHandler : IRequestHandler<UpdateExamsCommand, Err
             return Errors.AcademicYearErrors.AcademicYearNotFound;
         
         var exams = request.Exams
-            .Select(x => Exam.Create(x.name,
-                Enum.Parse<ExamType>(x.examType, ignoreCase: true),
-                x.description,
-                _timeService.ConvertAppDateTimeToUtcDateTimeOffset(DateTime.ParseExact(x.date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture)),
-                x.location))
+            .Select(x => Exam.Create(x.Name,
+                Enum.Parse<ExamType>(x.ExamType, ignoreCase: true),
+                x.Description,
+                _timeService.ConvertAppDateTimeToUtcDateTimeOffset(DateTime.ParseExact(x.Date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture)),
+                x.Location))
             .ToList();
 
         academicYear.UpdateExams(exams);

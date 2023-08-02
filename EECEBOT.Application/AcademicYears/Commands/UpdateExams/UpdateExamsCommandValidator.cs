@@ -10,21 +10,21 @@ public class UpdateExamsCommandValidator : AbstractValidator<UpdateExamsCommand>
     public UpdateExamsCommandValidator()
     {
         RuleFor(x=> x.Exams)
-            .NotEmpty()
+            .NotNull()
             .WithMessage("Exams are required.");
 
         RuleForEach(x => x.Exams)
-            .Must(x => !string.IsNullOrWhiteSpace(x.name))
+            .Must(x => !string.IsNullOrWhiteSpace(x.Name))
             .WithMessage("Exam name is required.")
-            .Must(x => !string.IsNullOrWhiteSpace(x.examType))
+            .Must(x => !string.IsNullOrWhiteSpace(x.ExamType))
             .WithMessage("Exam type is required.")
-            .Must(x => Enum.TryParse<ExamType>(x.examType, ignoreCase: true, out _))
+            .Must(x => Enum.TryParse<ExamType>(x.ExamType, ignoreCase: true, out _))
             .WithMessage("Exam type is invalid.")
-            .Must(x => !string.IsNullOrWhiteSpace(x.description))
+            .Must(x => !string.IsNullOrWhiteSpace(x.Description))
             .WithMessage("Exam description is required.")
-            .Must(x => !string.IsNullOrWhiteSpace(x.date))
+            .Must(x => !string.IsNullOrWhiteSpace(x.Date))
             .WithMessage("Exam date is required.")
-            .Must(x => DateTime.TryParseExact(x.date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture,
+            .Must(x => DateTime.TryParseExact(x.Date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out _))
             .WithMessage("Exam date format must be dd-MM-yyyy HH:mm.");
         

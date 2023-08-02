@@ -12,12 +12,12 @@ public class LinksMappingConfig : IRegister
         config.NewConfig<string, GetLinksQuery>()
             .MapWith(src => new GetLinksQuery(src));
         
-        config.NewConfig<LinkRequest, (string name, string url)>()
-            .Map(dest => dest.name, src => src.Name)
-            .Map(dest => dest.url, src => src.Url);
+        config.NewConfig<LinkRequest, UpdateLinkRequest>()
+            .Map(dest => dest.Name, src => src.Name)
+            .Map(dest => dest.Url, src => src.Url);
 
         config.NewConfig<(UpdateLinksRequest updateLinksRequest, string academicYear), UpdateLinksCommand>()
             .MapWith(x 
-                => new UpdateLinksCommand(x.updateLinksRequest.Links.Adapt<List<(string name, string url)>>(config), x.academicYear));
+                => new UpdateLinksCommand(x.updateLinksRequest.Links.Adapt<List<UpdateLinkRequest>>(config), x.academicYear));
     }
 }

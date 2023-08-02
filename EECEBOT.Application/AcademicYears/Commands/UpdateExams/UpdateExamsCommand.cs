@@ -4,8 +4,10 @@ using MediatR;
 
 namespace EECEBOT.Application.AcademicYears.Commands.UpdateExams;
 
-public record UpdateExamsCommand(List<(string name,
-    string examType,
-    string description,
-    string? location,
-    string date)> Exams, string Year) : IRequest<ErrorOr<UpdateExamsResult>>;
+public record UpdateExamsCommand(List<UpdateExamRequest> Exams, string Year) : IRequest<ErrorOr<UpdateExamsResult>>;
+
+public record UpdateExamRequest(string Name,
+    string ExamType,
+    string Description,
+    string? Location,
+    string Date);

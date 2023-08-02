@@ -7,16 +7,16 @@ public class UpdateLinksCommandValidator : AbstractValidator<UpdateLinksCommand>
 {
     public UpdateLinksCommandValidator()
     {
-        RuleFor(x => x.LinksTuples)
-            .NotEmpty()
+        RuleFor(x => x.Links)
+            .NotNull()
             .WithMessage("Links are required.");
 
-        RuleForEach(x => x.LinksTuples)
-            .Must(x => !string.IsNullOrWhiteSpace(x.name))
+        RuleForEach(x => x.Links)
+            .Must(x => !string.IsNullOrWhiteSpace(x.Name))
             .WithMessage("Link name is required.")
-            .Must(x => !string.IsNullOrWhiteSpace(x.url))
+            .Must(x => !string.IsNullOrWhiteSpace(x.Url))
             .WithMessage("Link url is required.")
-            .Must(x => Uri.TryCreate(x.url, UriKind.Absolute, out _))
+            .Must(x => Uri.TryCreate(x.Url, UriKind.Absolute, out _))
             .WithMessage("Link url is invalid.");
         
         RuleFor(x => x.Year)
