@@ -72,7 +72,7 @@ public class AcademicYear : AggregateRoot
         if (scheduleStartDate.DayOfWeek != DayOfWeek.Sunday)
             return Errors.ScheduleErrors.ScheduleStartDateMustBeSunday;
 
-        if (Schedule.Subjects.Count(s => subjectsIds.Distinct().Contains(s.Id)) != subjectsIds.Count)
+        if (!subjectsIds.Distinct().All(x => Schedule.Subjects.Select(s => s.Id).Contains(x)))
             return Errors.ScheduleErrors.InvalidSubjectsIds;
         
         Schedule.UpdateDateAndSessions(scheduleStartDate, sessions);

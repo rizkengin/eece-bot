@@ -41,9 +41,14 @@ internal sealed class UpdateScheduleCommandHandler : IRequestHandler<UpdateSched
             .ToList();
 
         var updateResult = academicYear
-            .TryUpdateSchedule(DateOnly.FromDateTime(DateTime.ParseExact(request.ScheduleStartDate, "dd-MM-yyyy", CultureInfo.InvariantCulture)),
-            sessions,
-            request.Sessions.Select(x => x.SubjectId).ToList());
+            .TryUpdateSchedule(
+                DateOnly.FromDateTime(
+                    DateTime.ParseExact(
+                        request.ScheduleStartDate,
+                        "dd-MM-yyyy",
+                        CultureInfo.InvariantCulture)), 
+                sessions,
+                request.Sessions.Select(x => x.SubjectId).ToList());
 
         if (updateResult.IsError)
             return updateResult.Errors;
