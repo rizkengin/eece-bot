@@ -61,4 +61,13 @@ public class TelegramUserRepository : ITelegramUserRepository
         telegramUser.ResetAcademicYear();
         _documentSession.Update(telegramUser);
     }
+
+    public void Remove(long telegramId)
+    {
+        var telegramUser = _documentSession.Query<TelegramUser>()
+            .FirstOrDefault(x => x.TelegramId == telegramId);
+        
+        if (telegramUser is not null)
+            _documentSession.Delete(telegramUser);
+    }
 }

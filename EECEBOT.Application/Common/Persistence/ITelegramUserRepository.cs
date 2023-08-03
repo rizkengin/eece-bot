@@ -12,4 +12,5 @@ public interface ITelegramUserRepository
     void UpdateSection(TelegramUser telegramUser, Section section);
     void UpdateBenchNumber(TelegramUser telegramUser, int benchNumber);
     void ResetAcademicYear(TelegramUser telegramUser);
+    void Remove(long telegramId);
 }

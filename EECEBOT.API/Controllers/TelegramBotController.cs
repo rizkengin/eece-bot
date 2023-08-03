@@ -1,4 +1,5 @@
-﻿using EECEBOT.Application.TelegramBot.Queries.CallbackQueryQuery;
+﻿using EECEBOT.Application.TelegramBot.Commands.ChatMemberStatusUpdatedCommand;
+using EECEBOT.Application.TelegramBot.Queries.CallbackQueryQuery;
 using EECEBOT.Application.TelegramBot.Queries.MessageQuery;
 using EECEBOT.Application.TelegramBot.Queries.TelegramQueryExceptionQuery;
 using EECEBOT.Application.TelegramBot.Queries.UnknownUpdateQuery;
@@ -28,6 +29,7 @@ public class TelegramBotController : ControllerBase
             {
                 { Message: { } message }                       => _sender.Send(new MessageReceivedQuery(message)),
                 { CallbackQuery: { } callbackQuery }           => _sender.Send(new CallbackQueryQuery(callbackQuery)),
+                { MyChatMember: { } chatMemberUpdated }        => _sender.Send(new ChatMemberStatusUpdatedCommand(chatMemberUpdated)),
                 _                                              => _sender.Send(new UnknownUpdateQuery(update))
             };
 
