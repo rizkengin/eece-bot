@@ -22,7 +22,7 @@ public class UpdateLabScheduleCommandValidator : AbstractValidator<UpdateLabSche
                 lab.RuleFor(x => x.Date)
                     .NotEmpty()
                     .Must(x => DateTime.TryParseExact(x, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-                    .WithMessage("Date must be in the format dd-MM-yyyy HH:mm");
+                    .WithMessage("Date format is invalid. Please use dd-MM-yyyy HH:mm format.");
                 
                 lab.RuleFor(x => x.Location)
                     .NotEmpty()
@@ -32,8 +32,7 @@ public class UpdateLabScheduleCommandValidator : AbstractValidator<UpdateLabSche
                     .NotEmpty()
                     .MaximumLength(50)
                     .Must(x => Enum.TryParse<Section>(x, ignoreCase: true, out _))
-                    .WithMessage(
-                        "Section must be one of the following: SectionOne, SectionTwo, SectionThree, SectionFour");
+                    .WithMessage("Invalid section type, Must be one of the following: SectionOne, SectionTwo, SectionThree, SectionFour");
 
                 lab.RuleFor(x => x.BenchNumbersRangeStart)
                     .GreaterThanOrEqualTo(0)
@@ -46,7 +45,6 @@ public class UpdateLabScheduleCommandValidator : AbstractValidator<UpdateLabSche
         RuleFor(x => x.Year)
             .NotEmpty()
             .Must(x => Enum.TryParse<Year>(x, ignoreCase: true, out _))
-            .WithMessage(
-                "Academic year must be one of the following: FirstYear, SecondYear, ThirdYear, FourthYear");
+            .WithMessage("Invalid academic year, must be one of the following: firstyear, secondyear, thirdyear, fourthyear.");
     }
 }

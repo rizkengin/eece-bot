@@ -7,7 +7,7 @@ public enum Period
     ThirdPeriod,
     FourthPeriod,
     FifthPeriod,
-    SixthPeriod,
+    SixthPeriod
 }
 
 public static class PeriodExtensions

@@ -20,7 +20,7 @@ public class UpdateScheduleCommandValidator : AbstractValidator<UpdateScheduleCo
             .Must(x => !string.IsNullOrWhiteSpace(x.Period))
             .WithMessage("Period is required.")
             .Must(x => Enum.TryParse<Period>(x.Period, ignoreCase: true, out _))
-            .WithMessage("Period is invalid.")
+            .WithMessage("Invalid period type, Must be one of the following: FirstPeriod, SecondPeriod, ThirdPeriod, FourthPeriod, FifthPeriod, SixthPeriod")
             .Must(x => x.SubjectId != Guid.Empty)
             .WithMessage("SubjectId is required.")
             .Must(x => !string.IsNullOrWhiteSpace(x.Lecturer))
@@ -30,26 +30,25 @@ public class UpdateScheduleCommandValidator : AbstractValidator<UpdateScheduleCo
             .Must(x => !string.IsNullOrWhiteSpace(x.SessionType))
             .WithMessage("Session type is required.")
             .Must(x => Enum.TryParse<SessionType>(x.SessionType, ignoreCase: true, out _))
-            .WithMessage("Session type is invalid.")
+            .WithMessage("Invalid session type, Must be one of the following: Lecture, Section, Other.")
             .Must(x => !string.IsNullOrWhiteSpace(x.Frequency))
             .WithMessage("Frequency is required.")
             .Must(x => Enum.TryParse<SessionFrequency>(x.Frequency, ignoreCase: true, out _))
-            .WithMessage("Frequency is invalid.")
+            .WithMessage("Invalid frequency type, Must be one of the following: Always, OddWeeks, EvenWeeks.")
             .Must(x => x.Sections.Any())
             .WithMessage("Sections are required.")
             .ChildRules(x => x.RuleForEach(y => y.Sections)
                 .Must(s => Enum.TryParse<Section>(s, ignoreCase: true, out _))
-                .WithMessage("Section is invalid."));
+                .WithMessage("Invalid section type, Must be one of the following: SectionOne, SectionTwo, SectionThree, SectionFour"));
         
         RuleFor(x => x.Year)
             .Must(x => Enum.TryParse<Year>(x, ignoreCase:true, out _))
-            .WithMessage("Academic year is invalid.");
+            .WithMessage("Invalid academic year, must be one of the following: firstyear, secondyear, thirdyear, fourthyear.");
 
         RuleFor(x => x.ScheduleStartDate)
             .NotEmpty()
             .WithMessage("Schedule start date is required.")
             .Must(x => DateTime.TryParseExact(x, "dd-MM-yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out _))
-            .WithMessage("Schedule start date is invalid.");
-            
+            .WithMessage("Date format is invalid. Please use dd-MM-yyyy format.");
     }
 }

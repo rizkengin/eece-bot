@@ -11,6 +11,6 @@ public class GetLabScheduleQueryValidator : AbstractValidator<GetLabScheduleQuer
             .NotEmpty()
             .WithMessage("Academic year is required.")
             .Must(x => Enum.TryParse<Year>(x, ignoreCase: true, out _))
-            .WithMessage("Academic year must be one of the following: FirstYear, SecondYear, ThirdYear, FourthYear");
+            .WithMessage("Invalid academic year, must be one of the following: firstyear, secondyear, thirdyear, fourthyear.");
     }
 }

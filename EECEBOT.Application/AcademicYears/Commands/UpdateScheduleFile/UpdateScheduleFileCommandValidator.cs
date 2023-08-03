@@ -9,7 +9,7 @@ public class UpdateScheduleFileCommandValidator : AbstractValidator<UpdateSchedu
     {
         RuleFor(x => x.Year)
             .Must(x => Enum.TryParse<Year>(x, ignoreCase:true, out _))
-            .WithMessage("Academic year is invalid.");
+            .WithMessage("Invalid academic year, must be one of the following: firstyear, secondyear, thirdyear, fourthyear.");
 
         RuleFor(x => x.ScheduleFile)
             .NotEmpty()

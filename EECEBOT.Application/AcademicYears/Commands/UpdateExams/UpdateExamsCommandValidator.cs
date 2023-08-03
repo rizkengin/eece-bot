@@ -19,17 +19,17 @@ public class UpdateExamsCommandValidator : AbstractValidator<UpdateExamsCommand>
             .Must(x => !string.IsNullOrWhiteSpace(x.ExamType))
             .WithMessage("Exam type is required.")
             .Must(x => Enum.TryParse<ExamType>(x.ExamType, ignoreCase: true, out _))
-            .WithMessage("Exam type is invalid.")
+            .WithMessage("Invalid exam type, must be one of the following: quiz, midterm, final.")
             .Must(x => !string.IsNullOrWhiteSpace(x.Description))
             .WithMessage("Exam description is required.")
             .Must(x => !string.IsNullOrWhiteSpace(x.Date))
             .WithMessage("Exam date is required.")
             .Must(x => DateTime.TryParseExact(x.Date, "dd-MM-yyyy HH:mm", CultureInfo.InvariantCulture,
                 DateTimeStyles.None, out _))
-            .WithMessage("Exam date format must be dd-MM-yyyy HH:mm.");
+            .WithMessage("Date format is invalid. Please use dd-MM-yyyy HH:mm format.");
         
         RuleFor(x => x.Year)
             .Must(x => Enum.TryParse<Year>(x, ignoreCase:true, out _))
-            .WithMessage("Academic year is invalid.");
+            .WithMessage("Invalid academic year, must be one of the following: firstyear, secondyear, thirdyear, fourthyear.");
     }
 }
