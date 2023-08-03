@@ -18,4 +18,4 @@ public sealed record SessionResponse(
     string Frequency,
     IEnumerable<string> Sections);
 
-public sealed record SubjectResponse(string Name, string Code);
+public sealed record SubjectResponse(Guid Id, string Name, string Code);

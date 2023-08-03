@@ -35,8 +35,8 @@ internal sealed class GetScheduleQueryHandler : IRequestHandler<GetScheduleQuery
                     academicYear.Schedule.FileUri?.ToString(),
                     academicYear.Schedule.Sessions.Select(s => new SessionResult(
                             academicYear.Schedule.Subjects.Single(x => x.Id == s.SubjectId) is { } subject ?
-                        new SubjectResult(subject.Name, subject.Code) :
-                        new SubjectResult(string.Empty, string.Empty),
+                        new SubjectResult(subject.Id, subject.Name, subject.Code) :
+                        new SubjectResult(Guid.Empty, string.Empty, string.Empty),
                     s.DayOfWeek.ToString(),
                     s.Period.ToString(),
                     s.Lecturer,

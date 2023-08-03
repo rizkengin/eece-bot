@@ -18,4 +18,4 @@ string SessionType,
 string Frequency,
 IEnumerable<string> Sections);
 
-public sealed record SubjectResult(string Name, string Code);
+public sealed record SubjectResult(Guid Id, string Name, string Code);
