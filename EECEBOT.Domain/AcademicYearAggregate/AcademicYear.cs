@@ -129,6 +129,21 @@ public class AcademicYear : AggregateRoot
         return new Deleted();
     }
 
+    public ErrorOr<Updated> TryUpdateScheduleSubject(Guid subjectId, string name, string code)
+    {
+        if (Schedule is null)
+            return Errors.ScheduleErrors.ScheduleNotFound;
+        
+        var subject = Schedule.Subjects.FirstOrDefault(x => x.Id == subjectId);
+        
+        if(subject is null)
+            return Errors.ScheduleErrors.SubjectNotFound;
+        
+        Schedule.UpdateSubject(subject, name, code);
+
+        return new Updated();
+    }
+
     public void UpdateScheduleFileUri(Uri fileUri)
     {
         if (Schedule is null)

@@ -18,4 +18,12 @@ public class Subject
     public static Subject Create(
         string name,
         string code) => new(Guid.NewGuid(), name, code);
+
+    public void UpdateSubject(
+        string name,
+        string code)
+    {
+        Name = name;
+        Code = code;
+    }
 }

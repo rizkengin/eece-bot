@@ -9,6 +9,7 @@ using EECEBOT.Application.AcademicYears.Commands.UpdateLabScheduleFile;
 using EECEBOT.Application.AcademicYears.Commands.UpdateLinks;
 using EECEBOT.Application.AcademicYears.Commands.UpdateSchedule;
 using EECEBOT.Application.AcademicYears.Commands.UpdateScheduleFile;
+using EECEBOT.Application.AcademicYears.Commands.UpdateSubject;
 using EECEBOT.Application.AcademicYears.Queries.GetDeadlines;
 using EECEBOT.Application.AcademicYears.Queries.GetExams;
 using EECEBOT.Application.AcademicYears.Queries.GetLabSchedule;
@@ -208,6 +209,19 @@ public class AcademicYearController : ApiController
 
         return result.Match(
             success => Ok(_mapper.Map<DeleteScheduleSubjectResponse>(success)), 
+            Problem
+        );
+    }
+    
+    [HttpPut("schedule/subjects/{id:guid}")]
+    public async Task<IActionResult> UpdateSubject(string year, Guid id, UpdateScheduleSubjectRequest request)
+    {
+        var command = _mapper.Map<UpdateScheduleSubjectCommand>(((request, id), year));
+        
+        var result = await _sender.Send(command);
+
+        return result.Match(
+            success => Ok(_mapper.Map<UpdateScheduleSubjectResponse>(success)), 
             Problem
         );
     }

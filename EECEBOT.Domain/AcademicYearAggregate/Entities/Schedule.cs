@@ -55,7 +55,11 @@ public class Schedule
     }
     internal void AddSubject(Subject subject) => _subjects.Add(subject);
     internal void DeleteSubject(Subject subject) => _subjects.Remove(subject);
-    internal void UpdateSubjects(IEnumerable<Subject> subjects) => Subjects = subjects.ToList();
+
+    internal void UpdateSubject(Subject subject, string name, string code)
+    {
+        subject.UpdateSubject(name, code);
+    }
     internal void UpdateFileUri(Uri fileUri) => FileUri = fileUri;
 
     internal void DeleteSubjectSessions(Guid subjectId)
