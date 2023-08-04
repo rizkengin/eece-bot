@@ -177,4 +177,13 @@ public class AcademicYear : AggregateRoot
         Deadlines = deadlines.ToList();
         RaiseDomainEvent(new DeadlinesUpdatedDomainEvent(Year));
     }
+
+    public void Reset()
+    {
+        Schedule = null;
+        LabSchedule = null;
+        _links.Clear();
+        _exams.Clear();
+        _deadlines.Clear();
+    }
 }

@@ -1,4 +1,6 @@
 ﻿using EECEBOT.Application.Common.Services;
+using EECEBOT.Domain.AcademicYearAggregate;
+using EECEBOT.Domain.AcademicYearAggregate.Entities;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Interfaces;
 using EECEBOT.Domain.Common.TelegramBotIds;
@@ -147,6 +149,28 @@ public class BackgroundTasksService : IBackgroundTasksService
             .Where(u => u.Year != Year.None)
             .ToListAsync();
 
+        var academicYears = await _session
+            .Query<AcademicYear>()
+            .ToListAsync();
+        
+        var users = await _session
+            .Query<User>()
+            .ToListAsync();
+
+        foreach (var academicYear in academicYears)
+        {
+            academicYear.Reset();
+            
+            _session.Update(academicYear);
+        }
+        
+        foreach (var user in users)
+        {
+            user.ResetAccess();
+            
+            _session.Update(user);
+        }
+        
         var telegramMessagesTasks = new List<Task>();
         
         var keyboard = new ReplyKeyboardMarkup(new[]

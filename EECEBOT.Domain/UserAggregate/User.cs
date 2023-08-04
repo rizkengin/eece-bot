@@ -74,4 +74,9 @@ public class User : AggregateRoot
             _refreshTokens.Remove(expiredToken);
         }
     }
+
+    public void ResetAccess()
+    {
+        _refreshTokens.Clear();
+    }
 }
