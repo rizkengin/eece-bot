@@ -1,6 +1,5 @@
 ﻿using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.AcademicYearAggregate;
-using EECEBOT.Domain.AcademicYearAggregate.Entities;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Interfaces;
 using EECEBOT.Domain.Common.TelegramBotIds;

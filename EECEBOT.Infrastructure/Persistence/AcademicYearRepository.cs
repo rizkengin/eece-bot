@@ -70,7 +70,7 @@ public class AcademicYearRepository : IAcademicYearRepository
         return academicYear.Schedule;
     }
 
-    public async Task<ErrorOr<LabSchedule?>> GetLabScheduleAsync(Year year, CancellationToken cancellationToken = default)
+    public async Task<ErrorOr<LabSchedule>> GetLabScheduleAsync(Year year, CancellationToken cancellationToken = default)
     {
         var academicYear = await GetAcademicYearAsync(year, cancellationToken);
         
@@ -111,9 +111,6 @@ public class AcademicYearRepository : IAcademicYearRepository
     public async Task<ErrorOr<Updated>> UpdateLabScheduleFileAsync(AcademicYear academicYear, IFormFile labScheduleFile,
         CancellationToken cancellationToken = default)
     {
-        if (academicYear.LabSchedule is null)
-            return Errors.LabScheduleErrors.LabScheduleNotFound;
-        
         var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
         
         if (academicYear.LabSchedule.FileUri is not null)

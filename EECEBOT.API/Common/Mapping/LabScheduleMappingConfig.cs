@@ -1,5 +1,4 @@
-﻿using EECEBOT.Application.AcademicYears.Commands.CreateLabSchedule;
-using EECEBOT.Application.AcademicYears.Commands.UpdateLabSchedule;
+﻿using EECEBOT.Application.AcademicYears.Commands.UpdateLabSchedule;
 using EECEBOT.Application.AcademicYears.Commands.UpdateLabScheduleFile;
 using EECEBOT.Application.AcademicYears.Queries.GetLabSchedule;
 using EECEBOT.Contracts.LabSchedules;
@@ -11,9 +10,6 @@ public class LabScheduleMappingConfig : IRegister
 {
     public void Register(TypeAdapterConfig config)
     {
-        config.NewConfig<string, CreateLabScheduleCommand>()
-            .MapWith(src => new CreateLabScheduleCommand(src));
-        
         config.NewConfig<LabRequest,LabUpdateRequest>()
             .MapWith(src => new LabUpdateRequest(
                 src.Name,

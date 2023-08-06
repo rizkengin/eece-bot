@@ -28,9 +28,6 @@ internal sealed class UpdateLabScheduleFileCommandHandler : IRequestHandler<Upda
         
         if (academicYear is null)
             return Errors.AcademicYearErrors.AcademicYearNotFound;
-        
-        if (academicYear.LabSchedule is null)
-            return Errors.LabScheduleErrors.LabScheduleNotFound;
 
         var updateResult =
             await _academicYearRepository.UpdateLabScheduleFileAsync(academicYear, request.LabScheduleFile,

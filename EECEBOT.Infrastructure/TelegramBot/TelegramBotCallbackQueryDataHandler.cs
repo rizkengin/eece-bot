@@ -154,7 +154,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         if (!tomorrowSessions.Any())
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
-                "<b>You don't have any sessions today. 🎉</b>",
+                "<b>You don't have any sessions tomorrow. 🎉</b>",
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
             
@@ -275,7 +275,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (labSchedule.Value is null)
+        if (labSchedule.IsError)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",
@@ -299,7 +299,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         if (nextLab is null)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
-                "<b>You don't have any labs left for this academic year.</b>",
+                "<b>You don't have any upcoming labs.</b>",
                 parseMode: ParseMode.Html,
                 cancellationToken: cancellationToken);
                 
@@ -327,7 +327,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
 
         await _botClient.AnswerCallbackQueryAsync(callbackQuery.Id, cancellationToken: cancellationToken);
         
-        if (labSchedule.Value is null)
+        if (labSchedule.IsError)
         {
             await _botClient.SendTextMessageAsync(user.ChatId,
                 "<b>Schedule is not yet updated by your academic year representative. Please be patient.</b>",

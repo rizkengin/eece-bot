@@ -1,5 +1,4 @@
-﻿using EECEBOT.Application.AcademicYears.ResultModels;
-using EECEBOT.Application.AcademicYears.ResultModels.ScheduleResultModels;
+﻿using EECEBOT.Application.AcademicYears.ResultModels.ScheduleResultModels;
 using ErrorOr;
 using MediatR;
 

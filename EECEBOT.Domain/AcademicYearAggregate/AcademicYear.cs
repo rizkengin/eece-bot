@@ -17,16 +17,18 @@ public class AcademicYear : AggregateRoot
 
     private AcademicYear(
         Guid id,
-        Year year)
+        Year year,
+        LabSchedule labSchedule)
     {
         Id = id;
         Year = year;
+        LabSchedule = labSchedule;
     }
     
     public Guid Id { get; private set; }
     public Year Year { get; private set; }
     public Schedule? Schedule { get; private set; }
-    public LabSchedule? LabSchedule { get; private set; }
+    public LabSchedule LabSchedule { get; private set; }
 
     public IReadOnlyCollection<Link> Links
     {
@@ -58,7 +60,7 @@ public class AcademicYear : AggregateRoot
         }
     }
     
-    public static AcademicYear Create(Year year) => new(Guid.NewGuid(), year);
+    public static AcademicYear Create(Year year) => new(Guid.NewGuid(), year, LabSchedule.Create());
 
     public void SetSchedule(Schedule schedule) => Schedule = schedule;
 
@@ -84,11 +86,8 @@ public class AcademicYear : AggregateRoot
     
     public ErrorOr<Updated> TryUpdateLabScheduleLabs(List<Lab> labs)
     {
-        if (LabSchedule is null)
-            return Errors.ScheduleErrors.ScheduleNotFound;
-
         if (labs.Exists(x => x.BenchNumbersRange.End.Value <= x.BenchNumbersRange.Start.Value))
-            return Errors.LabScheduleErrors.LabScheduleSplitMethodIsByBenchNumberButBenchNumbersRangeIsInvalid;
+            return Errors.LabScheduleErrors.BenchNumbersRangeIsInvalid;
         
         LabSchedule.UpdateLabs(labs);
         
@@ -181,7 +180,7 @@ public class AcademicYear : AggregateRoot
     public void Reset()
     {
         Schedule = null;
-        LabSchedule = null;
+        LabSchedule = LabSchedule.Create();
         _links.Clear();
         _exams.Clear();
         _deadlines.Clear();

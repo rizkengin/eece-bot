@@ -2,7 +2,6 @@
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
-using EECEBOT.Domain.Common.Errors;
 using ErrorOr;
 using MediatR;
 
@@ -27,9 +26,6 @@ internal sealed class GetLabScheduleQueryHandler : IRequestHandler<GetLabSchedul
         
         if (labScheduleResult.IsError)
             return labScheduleResult.Errors;
-
-        if (labScheduleResult.Value is null)
-            return Errors.LabScheduleErrors.LabScheduleNotFound;
 
         return new GetLabScheduleQueryResult(new LabScheduleResult(
             labScheduleResult.Value.Id,

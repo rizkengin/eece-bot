@@ -1,5 +1,4 @@
-﻿using EECEBOT.Application.AcademicYears.Commands.CreateLabSchedule;
-using EECEBOT.Application.AcademicYears.Commands.CreateSchedule;
+﻿using EECEBOT.Application.AcademicYears.Commands.CreateSchedule;
 using EECEBOT.Application.AcademicYears.Commands.CreateSubject;
 using EECEBOT.Application.AcademicYears.Commands.DeleteSubject;
 using EECEBOT.Application.AcademicYears.Commands.UpdateDeadlines;
@@ -30,7 +29,7 @@ using Microsoft.AspNetCore.Mvc;
 namespace EECEBOT.API.Controllers;
 
 [Authorize(Policy = Policies.AcademicYearRepresentatives)]
-[Route("academic-year/{year}")]
+[Route("academic-years/{year}")]
 public class AcademicYearController : ApiController
 {
     private readonly ISender _sender;
@@ -222,19 +221,6 @@ public class AcademicYearController : ApiController
 
         return result.Match(
             success => Ok(_mapper.Map<UpdateScheduleSubjectResponse>(success)), 
-            Problem
-        );
-    }
-    
-    [HttpPost("lab-schedule")]
-    public async Task<IActionResult> CreateLabSchedule(string year)
-    {
-        var command = _mapper.Map<CreateLabScheduleCommand>(year);
-        
-        var result = await _sender.Send(command);
-
-        return result.Match(
-            success => Ok(_mapper.Map<CreateLabScheduleResponse>(success)), 
             Problem
         );
     }
