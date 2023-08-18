@@ -15,11 +15,11 @@ public static partial class Errors
             "Authentication.InvalidToken",
             "Invalid token.");
         
-        public static Error TokenExpired => Error.Custom((int)HttpStatusCode.BadRequest,
+        public static Error TokenExpired => Error.Custom((int)HttpStatusCode.Unauthorized,
             "Authentication.TokenExpired",
             "Token expired.");
         
-        public static Error RefreshTokenExpired => Error.Custom((int)HttpStatusCode.BadRequest,
+        public static Error RefreshTokenExpired => Error.Custom((int)HttpStatusCode.Unauthorized,
             "Authentication.RefreshTokenExpired",
             "Refresh token expired.");
     }
