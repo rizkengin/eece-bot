@@ -30,7 +30,7 @@ public class LabScheduleMappingConfig : IRegister
             .MapWith(src => new GetLabScheduleQuery(src));
 
         config
-            .NewConfig<(string year, IFormFile labScheduleFile),
+            .NewConfig<(IFormFile labScheduleFile, string year),
                 UpdateLabScheduleFileCommand>()
             .MapWith(src => new UpdateLabScheduleFileCommand(
                 src.year,
