@@ -252,7 +252,7 @@ public class AcademicYearController : ApiController
     }
     
     [HttpPut("lab-schedule/file")]
-    public async Task<IActionResult> UpdateLabScheduleFile(string year, IFormFile file)
+    public async Task<IActionResult> UpdateLabScheduleFile(string year, [FromForm(Name = "file")] IFormFile file)
     {
         var command = _mapper.Map<UpdateLabScheduleFileCommand>((file, year));
         
