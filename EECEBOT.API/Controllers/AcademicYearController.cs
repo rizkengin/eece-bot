@@ -1,6 +1,7 @@
 ﻿using EECEBOT.Application.AcademicYears.Commands.CreateSchedule;
 using EECEBOT.Application.AcademicYears.Commands.CreateSubject;
 using EECEBOT.Application.AcademicYears.Commands.DeleteSubject;
+using EECEBOT.Application.AcademicYears.Commands.ResetAcademicYear;
 using EECEBOT.Application.AcademicYears.Commands.UpdateDeadlines;
 using EECEBOT.Application.AcademicYears.Commands.UpdateExams;
 using EECEBOT.Application.AcademicYears.Commands.UpdateLabSchedule;
@@ -260,6 +261,19 @@ public class AcademicYearController : ApiController
 
         return result.Match(
             success => Ok(_mapper.Map<UpdateLabScheduleFileResponse>(success)), 
+            Problem
+        );
+    }
+    
+    [HttpPost("reset")]
+    public async Task<IActionResult> Reset(string year)
+    {
+        var command = _mapper.Map<ResetCommand>(year);
+        
+        var result = await _sender.Send(command);
+
+        return result.Match(
+            _ => Ok(), 
             Problem
         );
     }

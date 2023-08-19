@@ -22,7 +22,7 @@ public class AcademicYearRepository : IAcademicYearRepository
         _documentSession = documentSession;
         _blobServiceClient = blobServiceClient;
     }
-
+    
     public async Task<AcademicYear?> GetAcademicYearAsync(Year year, CancellationToken cancellationToken = default)
     {
         return await _documentSession.Query<AcademicYear>()
