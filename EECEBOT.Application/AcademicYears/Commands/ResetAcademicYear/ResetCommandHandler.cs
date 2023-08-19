@@ -23,7 +23,7 @@ internal sealed class ResetCommandHandler : IRequestHandler<ResetCommand, ErrorO
     {
         var academicYear =
             await _academicYearRepository
-                .GetAcademicYearAsync(Enum.Parse<Year>(request.Year), cancellationToken);
+                .GetAcademicYearAsync(Enum.Parse<Year>(request.Year, ignoreCase:true), cancellationToken);
 
         if (academicYear is null)
             return Errors.AcademicYearErrors.AcademicYearNotFound;
