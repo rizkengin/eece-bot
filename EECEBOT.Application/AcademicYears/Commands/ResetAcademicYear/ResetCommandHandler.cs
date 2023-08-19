@@ -29,6 +29,8 @@ internal sealed class ResetCommandHandler : IRequestHandler<ResetCommand, ErrorO
             return Errors.AcademicYearErrors.AcademicYearNotFound;
         
         academicYear.Reset();
+        
+        _unitOfWork.Update(academicYear);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
