@@ -22,10 +22,10 @@ namespace EECEBOT.Application;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration)
+    public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
     {
         services
-            .AddTelegramBotServices(configuration)
+            .AddTelegramBotServices(configuration, isDevelopment)
             .AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
             .AddAuth(configuration);
         
@@ -36,8 +36,7 @@ public static class DependencyInjection
         return services;
     }
     
-    private static void AddAuth(this IServiceCollection services,
-                                             IConfiguration configuration)
+    private static void AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = new JwtSettings
         {
@@ -105,12 +104,12 @@ public static class DependencyInjection
         });
     }
     
-    private static IServiceCollection AddTelegramBotServices(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddTelegramBotServices(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
     {
         services.AddHttpClient("telegram-bot")
             .AddTypedClient<ITelegramBotClient>(httpclient =>
             {
-                var botToken = configuration["TelegramBotToken"]!;
+                var botToken = isDevelopment ? configuration["TelegramDevelopmentBotToken"]! : configuration["TelegramProductionBotToken"]!;
                 return new TelegramBotClient(botToken, httpclient);
             });
 
