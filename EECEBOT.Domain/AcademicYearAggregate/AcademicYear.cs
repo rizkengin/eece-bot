@@ -149,6 +149,8 @@ public class AcademicYear : AggregateRoot
             throw new UpdateScheduleFileNullException();
 
         Schedule.UpdateFileUri(fileUri);
+        
+        RaiseDomainEvent(new ScheduleFileUpdatedDomainEvent(Year));
     }
     
     public void UpdateLabScheduleFileUri(Uri fileUri)
@@ -157,6 +159,8 @@ public class AcademicYear : AggregateRoot
             throw new UpdateLabScheduleFileNullException();
         
         LabSchedule.UpdateFileUri(fileUri);
+        
+        RaiseDomainEvent(new LabScheduleFileUpdatedDomainEvent(Year));
     }
 
     public void UpdateLinks(IEnumerable<Link> links)
