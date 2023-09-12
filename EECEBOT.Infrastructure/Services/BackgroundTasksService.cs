@@ -260,6 +260,10 @@ public class BackgroundTasksService : IBackgroundTasksService
             .Query<AcademicYearResult>()
             .ToListAsync();
         
+        var telegramUsers = await _session
+            .Query<TelegramUser>()
+            .ToListAsync();
+        
         var tasks = new List<Task>();
         
         var stickerTasks = new List<Task>();
@@ -290,10 +294,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     firstYearLastResult.LastResultStatus = ResultStatus.Available;
                 
-                    var firstYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var firstYearUsers = telegramUsers
                         .Where(u => u.Year == Year.FirstYear)
-                        .ToListAsync();
+                        .ToList();
 
                     tasks.AddRange(firstYearUsers
                         .Select(firstYearUser => _telegramBotClient
@@ -317,10 +320,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     firstYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
                 
-                    var firstYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var firstYearUsers = telegramUsers
                         .Where(u => u.Year == Year.FirstYear)
-                        .ToListAsync();
+                        .ToList();
                 
                     tasks.AddRange(firstYearUsers
                         .Select(firstYearUser => _telegramBotClient
@@ -357,10 +359,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     secondYearLastResult.LastResultStatus = ResultStatus.Available;
                 
-                    var secondYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var secondYearUsers = telegramUsers
                         .Where(u => u.Year == Year.SecondYear)
-                        .ToListAsync();
+                        .ToList();
 
                     tasks.AddRange(secondYearUsers
                         .Select(secondYearUser => _telegramBotClient
@@ -384,10 +385,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     secondYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
                 
-                    var secondYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var secondYearUsers = telegramUsers
                         .Where(u => u.Year == Year.SecondYear)
-                        .ToListAsync();
+                        .ToList();
                 
                     tasks.AddRange(secondYearUsers
                         .Select(secondYearUser => _telegramBotClient
@@ -424,10 +424,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     thirdYearLastResult.LastResultStatus = ResultStatus.Available;
                 
-                    var thirdYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var thirdYearUsers = telegramUsers
                         .Where(u => u.Year == Year.ThirdYear)
-                        .ToListAsync();
+                        .ToList();
 
                     tasks.AddRange(thirdYearUsers
                         .Select(thirdYearUser => _telegramBotClient
@@ -451,10 +450,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     thirdYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
                 
-                    var thirdYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var thirdYearUsers = telegramUsers
                         .Where(u => u.Year == Year.ThirdYear)
-                        .ToListAsync();
+                        .ToList();
                 
                     tasks.AddRange(thirdYearUsers
                         .Select(thirdYearUser => _telegramBotClient
@@ -491,10 +489,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     fourthYearLastResult.LastResultStatus = ResultStatus.Available;
                 
-                    var fourthYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var fourthYearUsers = telegramUsers
                         .Where(u => u.Year == Year.FourthYear)
-                        .ToListAsync();
+                        .ToList();
 
                     tasks.AddRange(fourthYearUsers
                         .Select(fourthYearUser => _telegramBotClient
@@ -518,10 +515,9 @@ public class BackgroundTasksService : IBackgroundTasksService
                 {
                     fourthYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
                 
-                    var fourthYearUsers = await _session
-                        .Query<TelegramUser>()
+                    var fourthYearUsers = telegramUsers
                         .Where(u => u.Year == Year.FourthYear)
-                        .ToListAsync();
+                        .ToList();
                 
                     tasks.AddRange(fourthYearUsers
                         .Select(fourthYearUser => _telegramBotClient
