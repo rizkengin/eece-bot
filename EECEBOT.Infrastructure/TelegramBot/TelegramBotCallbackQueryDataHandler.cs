@@ -70,7 +70,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -95,7 +95,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.HappyDogSticker),
+                new InputFileId(TelegramStickers.StayHomeSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -134,7 +134,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -159,7 +159,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.HappyDogSticker),
+                new InputFileId(TelegramStickers.StayHomeSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -198,7 +198,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -212,7 +212,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -283,7 +283,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
 
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -304,7 +304,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
                 
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
                 
             return;
@@ -335,7 +335,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
 
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;
@@ -349,7 +349,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
                 cancellationToken: cancellationToken);
             
             await _botClient.SendStickerAsync(user.ChatId,
-                new InputFileId(TelegramStickers.NoScheduleSticker),
+                new InputFileId(TelegramStickers.CuteDogSticker),
                 cancellationToken: cancellationToken);
             
             return;

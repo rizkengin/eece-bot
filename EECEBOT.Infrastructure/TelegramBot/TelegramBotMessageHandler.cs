@@ -54,7 +54,7 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
             cancellationToken: cancellationToken);
         
         await _botClient.SendStickerAsync(message.Chat.Id,
-            new InputFileId(TelegramStickers.WelcomeSticker),
+            new InputFileId(TelegramStickers.HiFireSticker),
             cancellationToken: cancellationToken);
     }
 

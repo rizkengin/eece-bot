@@ -262,6 +262,8 @@ public class BackgroundTasksService : IBackgroundTasksService
         
         var tasks = new List<Task>();
         
+        var stickerTasks = new List<Task>();
+        
         var firstYearLastResult = academicYearResults
             .SingleOrDefault(x => x.AcademicYear == Year.FirstYear);
         
@@ -301,6 +303,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+
+                    stickerTasks.AddRange(firstYearUsers
+                        .Select(firstYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                firstYearUser.ChatId,
+                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
                 
                     _session.Update(firstYearLastResult);
                     break;
@@ -322,6 +330,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(firstYearUsers
+                        .Select(firstYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                firstYearUser.ChatId,
+                                new InputFileId(TelegramStickers.WorriedDogSticker))));
                 
                     _session.Update(firstYearLastResult);
                     break;
@@ -356,6 +370,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(secondYearUsers
+                        .Select(secondYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                secondYearUser.ChatId,
+                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
                 
                     _session.Update(secondYearLastResult);
                     break;
@@ -377,6 +397,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(secondYearUsers
+                        .Select(secondYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                secondYearUser.ChatId,
+                                new InputFileId(TelegramStickers.WorriedDogSticker))));
                 
                     _session.Update(secondYearLastResult);
                     break;
@@ -411,6 +437,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(thirdYearUsers
+                        .Select(thirdYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                thirdYearUser.ChatId,
+                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
                 
                     _session.Update(thirdYearLastResult);
                     break;
@@ -432,6 +464,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(thirdYearUsers
+                        .Select(thirdYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                thirdYearUser.ChatId,
+                                new InputFileId(TelegramStickers.WorriedDogSticker))));
                 
                     _session.Update(thirdYearLastResult);
                     break;
@@ -466,6 +504,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(fourthYearUsers
+                        .Select(fourthYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                fourthYearUser.ChatId,
+                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
                 
                     _session.Update(fourthYearLastResult);
                     break;
@@ -487,6 +531,12 @@ public class BackgroundTasksService : IBackgroundTasksService
                                 "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
                                 "🚨🚨🚨",
                                 parseMode: ParseMode.Html)));
+                    
+                    stickerTasks.AddRange(fourthYearUsers
+                        .Select(fourthYearUser => _telegramBotClient
+                            .SendStickerAsync(
+                                fourthYearUser.ChatId,
+                                new InputFileId(TelegramStickers.WorriedDogSticker))));
                 
                     _session.Update(fourthYearLastResult);
                     break;
@@ -497,6 +547,8 @@ public class BackgroundTasksService : IBackgroundTasksService
         await _session.SaveChangesAsync();
         
         await Task.WhenAll(tasks);
+
+        await Task.WhenAll(stickerTasks);
         
         _logger.LogInformation("Academic years results checked");
     }
