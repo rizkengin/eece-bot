@@ -543,7 +543,7 @@ public class BackgroundTasksService : IBackgroundTasksService
         await _session.SaveChangesAsync();
         
         await Task.WhenAll(tasks);
-
+        
         await Task.WhenAll(stickerTasks);
         
         _logger.LogInformation("Academic years results checked");

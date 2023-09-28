@@ -107,11 +107,11 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         {
             var subject = schedule.Value.Subjects.Single(s => s.Id == session.SubjectId);
             
-            message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
-            message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
-            message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
-            message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
-            message.Append($"<b><u>Session Type:</u> {session.SessionType.ToString()}</b>\n\n");
+            message.Append($"<b><u>Period:</u> {session.Period.ToFriendlyString()}\n");
+            message.Append($"<u>Subject:</u> {subject.Name} ({subject.Code})\n");
+            message.Append($"<u>Location:</u> {session.Location}\n");
+            message.Append($"<u>Lecturer:</u> {session.Lecturer}\n");
+            message.Append($"<u>Session Type:</u> {session.SessionType.ToString()}</b>\n\n");
         }
         
         await _botClient.SendTextMessageAsync(user.ChatId,
