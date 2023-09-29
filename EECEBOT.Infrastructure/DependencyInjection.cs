@@ -39,7 +39,10 @@ public static class DependencyInjection
              config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
              config.UseSimpleAssemblyNameTypeSerializer();
              config.UseRecommendedSerializerSettings();
-             config.UsePostgreSqlStorage(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
+             config.UsePostgreSqlStorage(options =>
+             {
+                 options.UseNpgsqlConnection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
+             });
              AddBackgroundJobs();
          });
         

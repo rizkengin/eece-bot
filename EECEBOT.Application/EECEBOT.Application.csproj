@@ -10,20 +10,20 @@
 
     <ItemGroup>
       <PackageReference Include="ErrorOr" Version="1.2.1" />
-      <PackageReference Include="FluentValidation" Version="11.5.2" />
+      <PackageReference Include="FluentValidation" Version="11.7.1" />
       <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
-      <PackageReference Include="MediatR" Version="12.0.1" />
-      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.9" />
+      <PackageReference Include="MediatR" Version="12.1.1" />
+      <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="7.0.11" />
       <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="7.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="7.0.0" />
       <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="7.0.0" />
       <PackageReference Include="Microsoft.Extensions.Http" Version="7.0.0" />
-      <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="6.31.0" />
-      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
+      <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.0.1" />
+      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.11.0.78383">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
-      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="6.31.0" />
+      <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.0.1" />
       <PackageReference Include="Telegram.Bot" Version="19.0.0" />
     </ItemGroup>
 

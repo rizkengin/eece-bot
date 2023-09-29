@@ -8,10 +8,10 @@
 
     <ItemGroup>
       <PackageReference Include="ErrorOr" Version="1.2.1" />
-      <PackageReference Include="MediatR" Version="12.0.1" />
+      <PackageReference Include="MediatR" Version="12.1.1" />
       <PackageReference Include="Microsoft.AspNetCore.Http" Version="2.2.2" />
       <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.3.0.71466">
+      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.11.0.78383">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
