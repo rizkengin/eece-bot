@@ -296,20 +296,25 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
             
             return;
         }
-        
-        var linksMessage = new StringBuilder();
-        
-        foreach (var link in links.Value)
+
+        var linksChunks = links.Value.Chunk(15);
+
+        foreach (var linksChunk in linksChunks)
         {
-            linksMessage.Append($"<b>{link.Name}</b>\n");
-            linksMessage.Append($"<b>Link:</b> {link.Url}\n\n");
-        }
+            var linksMessage = new StringBuilder();
         
-        await _botClient.SendTextMessageAsync(message.Chat.Id,
-            linksMessage.ToString(),
-            replyMarkup: new ReplyKeyboardRemove(),
-            parseMode: ParseMode.Html,
-            cancellationToken: cancellationToken);
+            foreach (var link in linksChunk)
+            {
+                linksMessage.Append($"<b>{link.Name}</b>\n");
+                linksMessage.Append($"<b>Link:</b> {link.Url}\n\n");
+            }
+        
+            await _botClient.SendTextMessageAsync(message.Chat.Id,
+                linksMessage.ToString(),
+                replyMarkup: new ReplyKeyboardRemove(),
+                parseMode: ParseMode.Html,
+                cancellationToken: cancellationToken);
+        }
     }
 
     public async Task HandleUnknownInput(Message message, CancellationToken cancellationToken)
