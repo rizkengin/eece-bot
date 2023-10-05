@@ -48,7 +48,8 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         };
             
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "<b>Welcome to EECE BOT! Please select your academic year from the keyboard below. 🎓</b>",
+            "<b>Welcome to EECE BOT! Please select your academic year from the keyboard below. 🎓\n\n</b>" +
+            "<i><u>Note:</u> You can reset your academic year at any time later on.</i>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
@@ -72,7 +73,8 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         };
             
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "<b>Please select your section from the keyboard below. 🎓</b>",
+            "<b>Please select your section from the keyboard below. 🎓\n\n</b>"+
+            "<i><u>Note:</u> You can reset your section at any time later on.</i>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
@@ -81,7 +83,8 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandlePickingBenchNumberFlow(Message message, CancellationToken cancellationToken)
     {
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "<b>Please enter your bench number. 🎓</b>",
+            "<b>Please enter your bench number. 🎓\n\n</b>" +
+            "<i><u>Note:</u> You can reset your bench number at any time later on.</i>",
             parseMode: ParseMode.Html,
             replyMarkup: new ReplyKeyboardRemove(),
             cancellationToken: cancellationToken);
@@ -251,13 +254,13 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
     public async Task HandleHelpCommand(TelegramUser user, Message message, CancellationToken cancellationToken)
     {
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            $"<b>Hello {user.FirstName}, 👋\n\n<u>EECE BOT</u> is a Telegram bot that helps you keep track of your schedule, exams, deadlines and much more!\n\n" +
-            "To get started, please select one of the following commands:\n\n" +
+            $"<b>Hello {user.FirstName}, 👋\n\n<u><i>EECE BOT</i></u> is a telegram bot that helps you keep track of your schedule, exams, deadlines and much more!\n\n" +
+            "To get started you can watch this <a href=\"https://youtu.be/iirNy6srqB8\">demo</a> or please select one of the following commands:\n\n" +
             "/schedule - to view your schedule. 📄\n" +
             "/exams - to view your exams. 📃\n" +
             "/deadlines - to view your deadlines. ⛔\n" +
             "/links - to view useful links. 🔗\n" +
-            "/reset - to reset your academic year. 🔄\n" +
+            "/reset - to reset your academic year and bench number. 🔄\n" +
             "/help - to view this message again. 🆘\n\n" +
             "If you have any questions or suggestions, please contact @rizkengin 💖\n\n" +
             "<u>البوت ممكن يساعدك ازاي؟ 🕺\n\n</u>" +
@@ -342,7 +345,8 @@ public class TelegramBotMessageHandler : ITelegramBotMessageHandler
         };
         
         await _botClient.SendTextMessageAsync(message.Chat.Id,
-            "<b>Please select your academic year. 🎓</b>",
+            "<b>Please select your academic year. 🎓\n\n</b>" +
+            "<i><u>Note:</u> You can reset your academic year at any time later on.</i>",
             replyMarkup: keyboard,
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
