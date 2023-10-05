@@ -14,10 +14,14 @@ namespace EECEBOT.API.Controllers;
 public class TelegramBotController : ControllerBase
 {
     private readonly ISender _sender;
+    private readonly ILogger<TelegramBotController> _logger;
 
-    public TelegramBotController(ISender sender)
+    public TelegramBotController(
+        ISender sender,
+        ILogger<TelegramBotController> logger)
     {
         _sender = sender;
+        _logger = logger;
     }
 
     [HttpPost("webhook")]
@@ -41,9 +45,9 @@ public class TelegramBotController : ControllerBase
             {
                 await _sender.Send(new TelegramQueryExceptionQuery(e));
             }
-            catch (Exception)
+            catch (Exception ex)
             {
-                // ignored
+                _logger.LogError(ex, "Exception happened while handling Telegram webhook update");
             }
         }
     }
