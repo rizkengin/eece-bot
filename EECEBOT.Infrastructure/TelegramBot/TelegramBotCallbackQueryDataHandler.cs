@@ -313,10 +313,10 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         var nextLabEta = nextLab.Date - _timeService.GetCurrentUtcTime();
         
         await _botClient.SendTextMessageAsync(user.ChatId,
-            $"<b><u>Your next lab is:<u> {nextLab.Name}</b>\n" +
-            $"<b><u>Lab date:<u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):U}</b>\n" +
-            $"<b><u>The location is:<u> {nextLab.Location}</b>\n" +
-            $"<b><u>Remaining time:<u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
+            $"<b><u>Next Lab:</u> {nextLab.Name}</b>\n" +
+            $"<b><u>Lab Date:</u> {_timeService.ConvertUtcDateTimeOffsetToAppDateTime(nextLab.Date):dd-MM-yyy HH:mm}</b>\n" +
+            $"<b><u>Location:</u> {nextLab.Location}</b>\n" +
+            $"<b><u>Remaining Time:</u> {nextLabEta.Days} days {nextLabEta.Hours} hours {nextLabEta.Minutes} minutes</b>",
             parseMode: ParseMode.Html,
             cancellationToken: cancellationToken);
     }
