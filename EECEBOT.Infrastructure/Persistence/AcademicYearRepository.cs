@@ -8,6 +8,7 @@ using EECEBOT.Domain.Common.Errors;
 using ErrorOr;
 using Marten;
 using Microsoft.AspNetCore.Http;
+using Microsoft.Extensions.Configuration;
 
 namespace EECEBOT.Infrastructure.Persistence;
 
@@ -15,12 +16,17 @@ public class AcademicYearRepository : IAcademicYearRepository
 {
     private readonly IDocumentSession _documentSession;
     private readonly BlobServiceClient _blobServiceClient;
-    private readonly string _containerName = "eece-bot";
+    private readonly string _containerName;
 
-    public AcademicYearRepository(IDocumentSession documentSession, BlobServiceClient blobServiceClient)
+    public AcademicYearRepository(
+        IDocumentSession documentSession,
+        BlobServiceClient blobServiceClient,
+        IConfiguration blobStorageConfiguration)
     {
         _documentSession = documentSession;
         _blobServiceClient = blobServiceClient;
+        _containerName = blobStorageConfiguration["AzureBlobStorage:ContainerName"] ??
+                         throw new ArgumentNullException(nameof(blobStorageConfiguration));
     }
     
     public async Task<AcademicYear?> GetAcademicYearAsync(Year year, CancellationToken cancellationToken = default)

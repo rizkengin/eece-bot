@@ -1,4 +1,5 @@
 ﻿using System.Text;
+using Azure.Storage.Blobs;
 using EECEBOT.Application.Common;
 using EECEBOT.Application.Common.Persistence;
 using EECEBOT.Application.Common.Services;
@@ -6,6 +7,7 @@ using EECEBOT.Application.Common.TelegramBot;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.TelegramBotIds;
 using EECEBOT.Domain.TelegramUserAggregate;
+using Microsoft.Extensions.Configuration;
 using Telegram.Bot;
 using Telegram.Bot.Types;
 using Telegram.Bot.Types.Enums;
@@ -18,15 +20,22 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
     private readonly ITelegramBotClient _botClient;
     private readonly IAcademicYearRepository _academicYearRepository;
     private readonly ITimeService _timeService;
+    private readonly BlobServiceClient _blobServiceClient;
+    private readonly string _containerName;
 
     public TelegramBotCallbackQueryDataHandler(
         ITelegramBotClient botClient,
         IAcademicYearRepository academicYearRepository,
-        ITimeService timeService)
+        ITimeService timeService,
+        BlobServiceClient blobServiceClient,
+        IConfiguration blobStorageConfiguration)
     {
         _botClient = botClient;
         _academicYearRepository = academicYearRepository;
         _timeService = timeService;
+        _blobServiceClient = blobServiceClient;
+        _containerName = blobStorageConfiguration["AzureBlobStorage:ContainerName"] ??
+                         throw new ArgumentNullException(nameof(blobStorageConfiguration));
     }
 
     public async Task HandleNormalScheduleDataAsync(CallbackQuery callbackQuery, TelegramUser user, CancellationToken cancellationToken)
@@ -171,7 +180,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         {
             var subject = schedule.Value.Subjects.Single(s => s.Id == session.SubjectId);
 
-            message.Append($"<b><u>Period</u> {session.Period.ToFriendlyString()}</b>\n");
+            message.Append($"<b><u>Period:</u> {session.Period.ToFriendlyString()}</b>\n");
             message.Append($"<b><u>Subject:</u> {subject.Name} ({subject.Code})</b>\n");
             message.Append($"<b><u>Location:</u> {session.Location}</b>\n");
             message.Append($"<b><u>Lecturer:</u> {session.Lecturer}</b>\n");
@@ -222,8 +231,16 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             ChatAction.UploadDocument,
             cancellationToken: cancellationToken);
         
+        var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+
+        var blobName = $"{user.Year.ToFriendlyString()}_Schedule{Path.GetExtension(schedule.Value.FileUri.LocalPath)}";
+        
+        var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+        await using var scheduleStream = await blobClient.OpenReadAsync(cancellationToken: cancellationToken);
+        
         await _botClient.SendDocumentAsync(user.ChatId,
-            new InputFileUrl(schedule.Value.FileUri),
+            new InputFileStream(scheduleStream, blobName),
             cancellationToken: cancellationToken);
     }
 
@@ -359,8 +376,16 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             ChatAction.UploadDocument,
             cancellationToken: cancellationToken);
         
+        var blobContainerClient = _blobServiceClient.GetBlobContainerClient(_containerName);
+
+        var blobName = $"{user.Year.ToFriendlyString()}_Lab_Schedule{Path.GetExtension(labSchedule.Value.FileUri.LocalPath)}";
+        
+        var blobClient = blobContainerClient.GetBlobClient(blobName);
+
+        await using var scheduleStream = await blobClient.OpenReadAsync(cancellationToken: cancellationToken);
+        
         await _botClient.SendDocumentAsync(user.ChatId,
-            new InputFileUrl(labSchedule.Value.FileUri),
+            new InputFileStream(scheduleStream, blobName),
             cancellationToken: cancellationToken);
     }
 }
