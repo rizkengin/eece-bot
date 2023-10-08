@@ -76,6 +76,6 @@ public class Schedule
     {
         var daysSpan = date.DayNumber - ScheduleStartDate.DayNumber;
         var weekNumber = daysSpan / 7;
-        return weekNumber % 2 == 0 ? WeekType.Even : WeekType.Odd;
+        return (weekNumber + 1) % 2 == 0 ? WeekType.Even : WeekType.Odd;
     }
 }

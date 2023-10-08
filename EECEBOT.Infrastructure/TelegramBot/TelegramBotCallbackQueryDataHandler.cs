@@ -87,7 +87,7 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
         
         var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
 
-        var currentWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(_timeService.GetCurrentUtcTime().DateTime));
+        var currentWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(currentTime));
 
         var todaySessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
@@ -149,14 +149,14 @@ public class TelegramBotCallbackQueryDataHandler : ITelegramBotCallbackQueryData
             return;
         }
         
-        var currentTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime());
+        var tomorrowTime = _timeService.ConvertUtcDateTimeOffsetToAppDateTime(_timeService.GetCurrentUtcTime()).AddDays(1);
 
-        var currentWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(_timeService.GetCurrentUtcTime().DateTime));
+        var tomorrowWeekType = schedule.Value.GetWeekType(DateOnly.FromDateTime(tomorrowTime));
 
         var tomorrowSessions = schedule.Value.Sessions
             .Where(s => s.Sections.Contains((Section)user.Section!)
-                        && s.DayOfWeek == currentTime.AddDays(1).DayOfWeek
-                        && (s.Frequency == SessionFrequency.Always || s.Frequency == currentWeekType.ToSessionFrequency()))
+                        && s.DayOfWeek == tomorrowTime.DayOfWeek
+                        && (s.Frequency == SessionFrequency.Always || s.Frequency == tomorrowWeekType.ToSessionFrequency()))
             .OrderBy(d => d.Period)
             .ToList();
 
