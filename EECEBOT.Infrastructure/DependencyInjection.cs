@@ -61,7 +61,7 @@ public static class DependencyInjection
             .AddOrUpdate<IBackgroundTasksService>(
                 "RequestGithubRepoStarFromUsers",
                 x => x.RequestGithubRepoStarFromUsersAsync(),
-                Cron.Monthly(1, 12, 0),
+                Cron.Monthly(1, 18, 0),
                 new RecurringJobOptions
                 {
                     TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")
