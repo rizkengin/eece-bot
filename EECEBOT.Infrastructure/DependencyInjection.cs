@@ -34,21 +34,21 @@ public static class DependencyInjection
     }
     private static void AddHangfireServices(this IServiceCollection services, IConfiguration configuration)
     {
-         services.AddHangfire(config =>
-         {
-             config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
-             config.UseSimpleAssemblyNameTypeSerializer();
-             config.UseRecommendedSerializerSettings();
-             config.UsePostgreSqlStorage(options =>
-             {
-                 options.UseNpgsqlConnection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
-             });
-             AddBackgroundJobs();
-         });
-        
+        services.AddHangfire(config =>
+        {
+            config.SetDataCompatibilityLevel(CompatibilityLevel.Version_180);
+            config.UseSimpleAssemblyNameTypeSerializer();
+            config.UseRecommendedSerializerSettings();
+            config.UsePostgreSqlStorage(options =>
+            {
+                options.UseNpgsqlConnection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
+            });
+            AddBackgroundJobs();
+        });
+
         services.AddHangfireServer();
     }
-    
+
     private static void AddBackgroundJobs()
     {
         RecurringJob
@@ -56,7 +56,7 @@ public static class DependencyInjection
                 "ProcessOutboxMessages",
                 x => x.ProcessOutboxMessagesAsync(),
                 "* * * * *");
-        
+
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
                 "RequestGithubRepoStarFromUsers",
@@ -66,19 +66,19 @@ public static class DependencyInjection
                 {
                     TimeZone = TimeZoneInfo.FindSystemTimeZoneById("Egypt Standard Time")
                 });
-        
+
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
                 "ExpiredRefreshTokensCleanup",
                 x => x.ExpiredRefreshTokensCleanupAsync(),
                 Cron.Weekly(DayOfWeek.Sunday));
-        
+
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
                 "AcademicYearResetProcess",
                 x => x.AcademicYearResetProcessAsync(),
                 Cron.Yearly(9, 1));
-        
+
         RecurringJob
             .AddOrUpdate<IBackgroundTasksService>(
                 "ResultsService",
@@ -101,7 +101,7 @@ public static class DependencyInjection
         services.AddScoped<ITelegramBotMessageHandler, TelegramBotMessageHandler>();
         services.AddScoped<ITelegramUserRepository, TelegramUserRepository>();
         services.AddScoped<ITelegramBotCallbackQueryDataHandler, TelegramBotCallbackQueryDataHandler>();
-        services.AddScoped<ITimeService,TimeService>();
+        services.AddScoped<ITimeService, TimeService>();
         services.AddScoped<IAcademicYearRepository, AcademicYearRepository>();
         services.AddScoped<IBackgroundTasksService, BackgroundTasksService>();
         services.AddScoped<IUserRepository, UserRepository>();
@@ -113,37 +113,37 @@ public static class DependencyInjection
     private static IServiceCollection AddPersistence(this IServiceCollection services, IConfiguration configuration)
     {
         services.AddMarten(options =>
-        {
-            options.Connection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
-            
-            options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
-                enumStorage: EnumStorage.AsString);
+            {
+                options.Connection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
 
-            options.Schema.For<TelegramUser>()
-                .DocumentAlias("Telegram_Users")
-                .Index(x => x.ChatId, x => x.IsUnique = true)
-                .Identity(x => x.Id);
+                options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
+                    enumStorage: EnumStorage.AsString);
 
-            options.Schema.For<User>()
-                .DocumentAlias("Users")
-                .Index(x => x.Email, x => x.IsUnique = true)
-                .Identity(x => x.Id);
+                options.Schema.For<TelegramUser>()
+                    .DocumentAlias("Telegram_Users")
+                    .Index(x => x.ChatId, x => x.IsUnique = true)
+                    .Identity(x => x.Id);
 
-            options.Schema.For<AcademicYear>()
-                .DocumentAlias("Academic_Years")
-                .Identity(x => x.Id);
-            
-            options.Schema.For<OutboxMessage>()
-                .DocumentAlias("Outbox_Messages")
-                .Identity(x => x.Id);
+                options.Schema.For<User>()
+                    .DocumentAlias("Users")
+                    .Index(x => x.Email, x => x.IsUnique = true)
+                    .Identity(x => x.Id);
 
-            options.Schema.For<AcademicYearResult>()
-                .DocumentAlias("Academic_Years_Results")
-                .Identity(x => x.Id)
-                .Index(x => x.AcademicYear);
+                options.Schema.For<AcademicYear>()
+                    .DocumentAlias("Academic_Years")
+                    .Identity(x => x.Id);
 
-            options.Listeners.Add(new ConvertDomainEventsToOutboxMessagesInterceptor());
-        }).UseLightweightSessions()
+                options.Schema.For<OutboxMessage>()
+                    .DocumentAlias("Outbox_Messages")
+                    .Identity(x => x.Id);
+
+                options.Schema.For<AcademicYearResult>()
+                    .DocumentAlias("Academic_Years_Results")
+                    .Identity(x => x.Id)
+                    .Index(x => x.AcademicYear);
+
+                options.Listeners.Add(new ConvertDomainEventsToOutboxMessagesInterceptor());
+            }).UseLightweightSessions()
             .ApplyAllDatabaseChangesOnStartup()
             .AssertDatabaseMatchesConfigurationOnStartup();
 

@@ -1,11 +1,15 @@
-﻿FROM mcr.microsoft.com/playwright/dotnet:v1.39.0-jammy AS base
-RUN apt-get update \
-    && apt-get install -y dotnet-sdk-7.0 \
-    && DEBIAN_FRONTEND=noninteractive TZ=Etc/UTC apt-get -y install tzdata 
+FROM mcr.microsoft.com/dotnet/aspnet:8.0 AS base
 WORKDIR /app
-EXPOSE 80
+RUN apt-get update -yq \
+    && apt-get install wget -yq \
+    && wget -q https://packages.microsoft.com/config/ubuntu/20.04/packages-microsoft-prod.deb \
+    && dpkg -i packages-microsoft-prod.deb \
+    && apt-get update -yq \
+    && apt-get install powershell -yq
+EXPOSE 8080
 
-FROM mcr.microsoft.com/dotnet/sdk:7.0 AS build
+FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
+ARG BUILD_CONFIGURATION=Release
 WORKDIR /src
 COPY ["EECEBOT.API/EECEBOT.API.csproj", "EECEBOT.API/"]
 COPY ["EECEBOT.Application/EECEBOT.Application.csproj", "EECEBOT.Application/"]
@@ -19,8 +23,12 @@ RUN dotnet build "EECEBOT.API.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "EECEBOT.API.csproj" -c Release -o /app/publish /p:UseAppHost=false
+COPY --from=build /app/build/playwright.ps1 /app/publish
 
 FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
+RUN pwsh playwright.ps1 install
+RUN rm -rf playwright.ps1
+RUN apt remove wget powershell -yq
 ENTRYPOINT ["dotnet", "EECEBOT.API.dll"]
