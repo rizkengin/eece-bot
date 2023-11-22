@@ -29,6 +29,7 @@ FROM base AS final
 WORKDIR /app
 COPY --from=publish /app/publish .
 RUN pwsh playwright.ps1 install
+RUN pwsh playwright.ps1 install-deps
 RUN rm -rf playwright.ps1
 RUN apt remove wget powershell -yq
 ENTRYPOINT ["dotnet", "EECEBOT.API.dll"]
