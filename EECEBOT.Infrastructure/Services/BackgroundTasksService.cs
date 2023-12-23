@@ -115,7 +115,14 @@ public class BackgroundTasksService : IBackgroundTasksService
             .Cast<Task>()
             .ToList();
 
-        await Task.WhenAll(tasks);
+        try
+        {
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unable to request github repo star from users");
+        }
     }
 
     public async Task ExpiredRefreshTokensCleanupAsync()
@@ -541,10 +548,24 @@ public class BackgroundTasksService : IBackgroundTasksService
         }
         
         await _session.SaveChangesAsync();
-        
-        await Task.WhenAll(tasks);
-        
-        await Task.WhenAll(stickerTasks);
+
+        try
+        { 
+            await Task.WhenAll(tasks);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unable to send academic years results notifications");
+        }
+
+        try
+        { 
+            await Task.WhenAll(stickerTasks);
+        }
+        catch (Exception e)
+        {
+            _logger.LogError(e, "Unable to send academic years results stickers");
+        }
         
         _logger.LogInformation("Academic years results checked");
     }
