@@ -10,7 +10,7 @@ var builder = WebApplication.CreateBuilder(args);
 
 builder.Services
        .AddAzureVaultConfiguration(builder.Configuration)
-       .AddPresentation(builder.Host)
+       .AddPresentation(builder.Host, builder.Configuration, builder.Environment)
        .AddApplication(builder.Configuration, builder.Environment.IsDevelopment())
        .AddInfrastructure(builder.Configuration);
 

@@ -8,7 +8,11 @@ namespace EECEBOT.API;
 
 public static class DependencyInjection
 {
-    public static IServiceCollection AddPresentation(this IServiceCollection services, IHostBuilder host)
+    public static IServiceCollection AddPresentation(
+        this IServiceCollection services, 
+        IHostBuilder host, 
+        ConfigurationManager configuration, 
+        IWebHostEnvironment environment)
     {
         services
             .AddControllers()
@@ -19,21 +23,36 @@ public static class DependencyInjection
             .AddSwaggerGen()
             .AddMappings();
         
-        AddLogging(host);
+        AddLogging(host, configuration, environment);
 
         services.AddSingleton<ProblemDetailsFactory, EecebotProblemDetailsFactory>();
 
         return services;
     }
 
-    private static void AddLogging(IHostBuilder host)
+    private static void AddLogging(
+        IHostBuilder host, 
+        ConfigurationManager configuration, 
+        IWebHostEnvironment environment)
     {
+        var seqUrl = environment.IsDevelopment()
+            ? configuration.GetValue<string>("Seq:Url")
+            ?? throw new InvalidOperationException("Seq URL is missing")
+            : configuration["Seq-Container-URL"]
+            ?? throw new InvalidOperationException("Seq URL is missing");
+        
+        var seqApiKey = environment.IsDevelopment()
+            ? configuration.GetValue<string>("Seq:ApiKey") 
+            ?? throw new InvalidOperationException("Seq API key is missing")
+            : configuration[configuration.GetValue<string>("Seq:ApiKeyKey") 
+            ?? throw new InvalidOperationException("Seq Api key key is missing")];
+
         Log.Logger = new LoggerConfiguration()
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
             .Enrich.FromLogContext()
-            .WriteTo.AzureApp(LogEventLevel.Information)
+            .WriteTo.Seq(seqUrl, apiKey: seqApiKey)
             .WriteTo.Console()
             .CreateBootstrapLogger();
 
@@ -44,7 +63,7 @@ public static class DependencyInjection
             .MinimumLevel.Override("Microsoft.AspNetCore", LogEventLevel.Warning)
             .MinimumLevel.Override("Microsoft.EntityFrameworkCore", LogEventLevel.Warning)
             .Enrich.FromLogContext()
-            .WriteTo.AzureApp(LogEventLevel.Information)
+            .WriteTo.Seq(seqUrl, apiKey: seqApiKey)
             .WriteTo.Console());
     }
 }

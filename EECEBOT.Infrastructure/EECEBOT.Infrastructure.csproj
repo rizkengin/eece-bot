@@ -19,14 +19,14 @@
       <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
       <PackageReference Include="Hangfire.AspNetCore" Version="1.8.6" />
       <PackageReference Include="Hangfire.Core" Version="1.8.6" />
-      <PackageReference Include="Hangfire.PostgreSql" Version="1.20.4" />
-      <PackageReference Include="HtmlAgilityPack" Version="1.11.54" />
-      <PackageReference Include="Marten" Version="6.3.0" />
+      <PackageReference Include="Hangfire.PostgreSql" Version="1.20.5" />
+      <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
+      <PackageReference Include="Marten" Version="6.4.1" />
       <PackageReference Include="Microsoft.Extensions.Azure" Version="1.7.1" />
       <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
       <PackageReference Include="Microsoft.Playwright" Version="1.40.0" />
       <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.19.5" />
-      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.12.0.78982">
+      <PackageReference Include="SonarAnalyzer.CSharp" Version="9.16.0.82469">
         <PrivateAssets>all</PrivateAssets>
         <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
       </PackageReference>
