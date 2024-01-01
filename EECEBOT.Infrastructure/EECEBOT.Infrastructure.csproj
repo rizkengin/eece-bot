@@ -17,8 +17,8 @@
       <PackageReference Include="Azure.Identity" Version="1.10.4" />
       <PackageReference Include="Azure.Security.KeyVault.Secrets" Version="4.5.0" />
       <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-      <PackageReference Include="Hangfire.AspNetCore" Version="1.8.6" />
-      <PackageReference Include="Hangfire.Core" Version="1.8.6" />
+      <PackageReference Include="Hangfire.AspNetCore" Version="1.8.7" />
+      <PackageReference Include="Hangfire.Core" Version="1.8.7" />
       <PackageReference Include="Hangfire.PostgreSql" Version="1.20.5" />
       <PackageReference Include="HtmlAgilityPack" Version="1.11.57" />
       <PackageReference Include="Marten" Version="6.4.1" />

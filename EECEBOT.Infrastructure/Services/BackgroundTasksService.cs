@@ -1,4 +1,5 @@
-﻿using EECEBOT.Application.Common.Services;
+﻿using EECEBOT.Application.Common.Persistence;
+using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.AcademicYearAggregate;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Interfaces;
@@ -40,12 +41,12 @@ public class BackgroundTasksService : IBackgroundTasksService
         _telegramBotClient = telegramBotClient;
         _logger = logger;
     }
-    
+
     [DisableConcurrentExecution(20)]
     public async Task ProcessOutboxMessagesAsync()
     {
         _logger.LogInformation("Processing outbox messages");
-        
+
         var messages = await _session
             .Query<OutboxMessage>()
             .Where(m => m.ProcessedOnUtc == null)
@@ -68,7 +69,7 @@ public class BackgroundTasksService : IBackgroundTasksService
                 _logger.LogWarning("Unable to deserialize domain event from outbox message {MessageId}", outboxMessage.Id);
                 continue;
             }
-            
+
             try
             {
                 await _publisher.Publish(domainEvent);
@@ -79,10 +80,10 @@ public class BackgroundTasksService : IBackgroundTasksService
                         "Unable to publish domain event {DomainEvent} from outbox message {MessageId}",
                         domainEvent.GetType().Name,
                         outboxMessage.Id);
-                
+
                 outboxMessage.Error = e.Message;
             }
-            
+
             outboxMessage.ProcessedOnUtc = DateTime.UtcNow;
         }
 
@@ -100,8 +101,11 @@ public class BackgroundTasksService : IBackgroundTasksService
             .Where(u => u.Year != Year.None)
             .ToListAsync();
 
-        var tasks = users
-            .Select(user => _telegramBotClient.
+        foreach (var user in users)
+        {
+            try
+            {
+                await _telegramBotClient.
                 SendPhotoAsync(
                     user.ChatId,
                     new InputFileUrl(TelegramFiles.GithubRepositoryStarHelperImage),
@@ -111,18 +115,19 @@ public class BackgroundTasksService : IBackgroundTasksService
                              "\nدا هيساعد ويشجع جدا علي ان البوت يفضل لايف ويتعمله تحديثات اول بـ اول. 🚀🚀\n" +
                              "وكمان هيساعد علي ان البوت يوصل لاكبر عدد ممكن من الطلاب ويفيد اكبر عدد ممكن. 🤝🤝\n" +
                              "وشكرا جدا ليك/ي. 🙏🙏</b>",
-                    parseMode: ParseMode.Html))
-            .Cast<Task>()
-            .ToList();
+                    parseMode: ParseMode.Html);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unable to send github repo star request to user {ChatId}", user.ChatId);
 
-        try
-        {
-            await Task.WhenAll(tasks);
+                _session.Delete(user);
+
+                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+            }
         }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unable to request github repo star from users");
-        }
+
+        await _session.SaveChangesAsync();
     }
 
     public async Task ExpiredRefreshTokensCleanupAsync()
@@ -136,15 +141,15 @@ public class BackgroundTasksService : IBackgroundTasksService
                         u.RefreshTokens.Any(t => t.IsUsed) ||
                         u.RefreshTokens.Any(t => t.IsInvalidated))
             .ToList();
-        
+
         if (users.Count == 0)
             return;
-        
+
         foreach (var user in users)
             user.RefreshTokensCleanup();
-        
+
         _session.Update<User>(users);
-        
+
         await _session.SaveChangesAsync();
     }
 
@@ -158,7 +163,7 @@ public class BackgroundTasksService : IBackgroundTasksService
         var academicYears = await _session
             .Query<AcademicYear>()
             .ToListAsync();
-        
+
         var users = await _session
             .Query<User>()
             .ToListAsync();
@@ -166,19 +171,17 @@ public class BackgroundTasksService : IBackgroundTasksService
         foreach (var academicYear in academicYears)
         {
             academicYear.Reset();
-            
+
             _session.Update(academicYear);
         }
-        
+
         foreach (var user in users)
         {
             user.ResetAccess();
-            
+
             _session.Update(user);
         }
-        
-        var telegramMessagesTasks = new List<Task>();
-        
+
         var keyboard = new ReplyKeyboardMarkup(new[]
         {
             new KeyboardButton[] {"1st year"},
@@ -189,26 +192,34 @@ public class BackgroundTasksService : IBackgroundTasksService
         {
             ResizeKeyboard = true
         };
-        
+
         foreach (var telegramUser in activeTelegramUsers)
         {
             telegramUser.ResetAcademicYear();
-            
+
             _session.Update(telegramUser);
-            
-            telegramMessagesTasks
-                .Add(_telegramBotClient.SendTextMessageAsync(
+
+            try
+            {
+                await _telegramBotClient.SendTextMessageAsync(
                     telegramUser.ChatId,
                     "<b>Your academic year has been automatically reset!. Please select your academic year. 🎓</b>",
                     replyMarkup: keyboard,
-                    parseMode: ParseMode.Html));
+                    parseMode: ParseMode.Html);
+            }
+            catch (Exception e)
+            {
+                _logger.LogError(e, "Unable to send academic year reset message to user {ChatId}", telegramUser.ChatId);
+
+                _session.Delete(telegramUser);
+
+                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", telegramUser.ChatId, telegramUser.FirstName);
+            }
         }
 
         await _session.SaveChangesAsync();
-        
-        await Task.WhenAll(telegramMessagesTasks);
     }
-    
+
     [DisableConcurrentExecution(20)]
     [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Delete)]
     public async Task CheckForAcademicYearsResultsAsync()
@@ -224,39 +235,39 @@ public class BackgroundTasksService : IBackgroundTasksService
                 });
 
         var page = await browser.NewPageAsync();
-           
+
         await page.GotoAsync("http://www.results.eng.cu.edu.eg/");
 
         var resultsHtmlPage = await page.ContentAsync();
 
         var htmlDocument = new HtmlDocument();
-            
+
         htmlDocument.LoadHtml(resultsHtmlPage);
-            
+
         var table = htmlDocument
             .DocumentNode
             .SelectSingleNode("""//*[@id="AutoNumber4"]""")
             .ChildNodes["tbody"]
             .ChildNodes[2];
-        
+
         var isFirstYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td1")
             .ChildNodes
             .Count > 0;
-        
+
         var isSecondYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td2")
             .ChildNodes
             .Count > 0;
-        
+
         var isThirdYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td3")
             .ChildNodes
             .Count > 0;
-        
+
         var isFourthYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td4")
@@ -266,18 +277,14 @@ public class BackgroundTasksService : IBackgroundTasksService
         var academicYearResults = await _session
             .Query<AcademicYearResult>()
             .ToListAsync();
-        
+
         var telegramUsers = await _session
             .Query<TelegramUser>()
             .ToListAsync();
-        
-        var tasks = new List<Task>();
-        
-        var stickerTasks = new List<Task>();
-        
+
         var firstYearLastResult = academicYearResults
             .SingleOrDefault(x => x.AcademicYear == Year.FirstYear);
-        
+
         var secondYearLastResult = academicYearResults
             .SingleOrDefault(x => x.AcademicYear == Year.SecondYear);
 
@@ -290,7 +297,7 @@ public class BackgroundTasksService : IBackgroundTasksService
         if (firstYearLastResult is null)
         {
             firstYearLastResult = AcademicYearResult.Create(Year.FirstYear, isFirstYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-            
+
             _session.Store(firstYearLastResult);
         }
         else
@@ -298,64 +305,90 @@ public class BackgroundTasksService : IBackgroundTasksService
             switch (isFirstYearResultAvailable)
             {
                 case true when firstYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
-                {
-                    firstYearLastResult.LastResultStatus = ResultStatus.Available;
-                
-                    var firstYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.FirstYear)
-                        .ToList();
+                    {
+                        firstYearLastResult.LastResultStatus = ResultStatus.Available;
 
-                    tasks.AddRange(firstYearUsers
-                        .Select(firstYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                firstYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
+                        var firstYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.FirstYear)
+                            .ToList();
 
-                    stickerTasks.AddRange(firstYearUsers
-                        .Select(firstYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                firstYearUser.ChatId,
-                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
-                
-                    _session.Update(firstYearLastResult);
-                    break;
-                }
+                        foreach (var firstYearUser in firstYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    firstYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    firstYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", firstYearUser.ChatId);
+
+                                _session.Delete(firstYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", firstYearUser.ChatId, firstYearUser.FirstName);
+                            }
+                        }
+                        
+                        _session.Update(firstYearLastResult);
+                        
+                        break;
+                    }
                 case false when firstYearLastResult.LastResultStatus == ResultStatus.Available:
-                {
-                    firstYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-                
-                    var firstYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.FirstYear)
-                        .ToList();
-                
-                    tasks.AddRange(firstYearUsers
-                        .Select(firstYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                firstYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(firstYearUsers
-                        .Select(firstYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                firstYearUser.ChatId,
-                                new InputFileId(TelegramStickers.WorriedDogSticker))));
-                
-                    _session.Update(firstYearLastResult);
-                    break;
-                }
+                    {
+                        firstYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
+
+                        var firstYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.FirstYear)
+                            .ToList();
+
+                        foreach(var firstYearUser in firstYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    firstYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    firstYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.WorriedDogSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", firstYearUser.ChatId);
+
+                                _session.Delete(firstYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", firstYearUser.ChatId, firstYearUser.FirstName);
+                            }
+                        }
+
+                        _session.Update(firstYearLastResult);
+                        
+                        break;
+                    }
             }
         }
-        
+
         if (secondYearLastResult is null)
         {
             secondYearLastResult = AcademicYearResult.Create(Year.SecondYear, isSecondYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-            
+
             _session.Store(secondYearLastResult);
         }
         else
@@ -363,64 +396,90 @@ public class BackgroundTasksService : IBackgroundTasksService
             switch (isSecondYearResultAvailable)
             {
                 case true when secondYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
-                {
-                    secondYearLastResult.LastResultStatus = ResultStatus.Available;
-                
-                    var secondYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.SecondYear)
-                        .ToList();
+                    {
+                        secondYearLastResult.LastResultStatus = ResultStatus.Available;
 
-                    tasks.AddRange(secondYearUsers
-                        .Select(secondYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                secondYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(secondYearUsers
-                        .Select(secondYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                secondYearUser.ChatId,
-                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
-                
-                    _session.Update(secondYearLastResult);
-                    break;
-                }
+                        var secondYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.SecondYear)
+                            .ToList();
+
+                        foreach(var secondYearUser in secondYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    secondYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    secondYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", secondYearUser.ChatId);
+
+                                _session.Delete(secondYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", secondYearUser.ChatId, secondYearUser.FirstName);
+                            }
+                        }
+                        
+                        _session.Update(secondYearLastResult);
+                        
+                        break;
+                    }
                 case false when secondYearLastResult.LastResultStatus == ResultStatus.Available:
-                {
-                    secondYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-                
-                    var secondYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.SecondYear)
-                        .ToList();
-                
-                    tasks.AddRange(secondYearUsers
-                        .Select(secondYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                secondYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(secondYearUsers
-                        .Select(secondYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                secondYearUser.ChatId,
-                                new InputFileId(TelegramStickers.WorriedDogSticker))));
-                
-                    _session.Update(secondYearLastResult);
-                    break;
-                }
+                    {
+                        secondYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
+
+                        var secondYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.SecondYear)
+                            .ToList();
+
+                        foreach(var secondYearUser in secondYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    secondYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    secondYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.WorriedDogSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", secondYearUser.ChatId);
+
+                                _session.Delete(secondYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", secondYearUser.ChatId, secondYearUser.FirstName);
+                            }
+                        }
+                        
+                        _session.Update(secondYearLastResult);
+                        
+                        break;
+                    }
             }
         }
-        
+
         if (thirdYearLastResult is null)
         {
             thirdYearLastResult = AcademicYearResult.Create(Year.ThirdYear, isThirdYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-            
+
             _session.Store(thirdYearLastResult);
         }
         else
@@ -428,64 +487,90 @@ public class BackgroundTasksService : IBackgroundTasksService
             switch (isThirdYearResultAvailable)
             {
                 case true when thirdYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
-                {
-                    thirdYearLastResult.LastResultStatus = ResultStatus.Available;
-                
-                    var thirdYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.ThirdYear)
-                        .ToList();
+                    {
+                        thirdYearLastResult.LastResultStatus = ResultStatus.Available;
 
-                    tasks.AddRange(thirdYearUsers
-                        .Select(thirdYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                thirdYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(thirdYearUsers
-                        .Select(thirdYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                thirdYearUser.ChatId,
-                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
-                
-                    _session.Update(thirdYearLastResult);
-                    break;
-                }
+                        var thirdYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.ThirdYear)
+                            .ToList();
+                        
+                        foreach(var thirdYearUser in thirdYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    thirdYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    thirdYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", thirdYearUser.ChatId);
+
+                                _session.Delete(thirdYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", thirdYearUser.ChatId, thirdYearUser.FirstName);
+                            }
+                        }
+
+                        _session.Update(thirdYearLastResult);
+                        
+                        break;
+                    }
                 case false when thirdYearLastResult.LastResultStatus == ResultStatus.Available:
-                {
-                    thirdYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-                
-                    var thirdYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.ThirdYear)
-                        .ToList();
-                
-                    tasks.AddRange(thirdYearUsers
-                        .Select(thirdYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                thirdYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(thirdYearUsers
-                        .Select(thirdYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                thirdYearUser.ChatId,
-                                new InputFileId(TelegramStickers.WorriedDogSticker))));
-                
-                    _session.Update(thirdYearLastResult);
-                    break;
-                }
+                    {
+                        thirdYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
+
+                        var thirdYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.ThirdYear)
+                            .ToList();
+
+                        foreach(var thirdYearUser in thirdYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    thirdYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    thirdYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.WorriedDogSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", thirdYearUser.ChatId);
+
+                                _session.Delete(thirdYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", thirdYearUser.ChatId, thirdYearUser.FirstName);
+                            }
+                        }
+                        
+                        _session.Update(thirdYearLastResult);
+                        
+                        break;
+                    }
             }
         }
-        
+
         if (fourthYearLastResult is null)
         {
             fourthYearLastResult = AcademicYearResult.Create(Year.FourthYear, isFourthYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-            
+
             _session.Store(fourthYearLastResult);
         }
         else
@@ -493,80 +578,88 @@ public class BackgroundTasksService : IBackgroundTasksService
             switch (isFourthYearResultAvailable)
             {
                 case true when fourthYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
-                {
-                    fourthYearLastResult.LastResultStatus = ResultStatus.Available;
-                
-                    var fourthYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.FourthYear)
-                        .ToList();
+                    {
+                        fourthYearLastResult.LastResultStatus = ResultStatus.Available;
 
-                    tasks.AddRange(fourthYearUsers
-                        .Select(fourthYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                fourthYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(fourthYearUsers
-                        .Select(fourthYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                fourthYearUser.ChatId,
-                                new InputFileId(TelegramStickers.AnnouncementFireSticker))));
-                
-                    _session.Update(fourthYearLastResult);
-                    break;
-                }
+                        var fourthYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.FourthYear)
+                            .ToList();
+
+                        foreach(var fourthYearUser in fourthYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    fourthYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    fourthYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", fourthYearUser.ChatId);
+
+                                _session.Delete(fourthYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", fourthYearUser.ChatId, fourthYearUser.FirstName);
+                            }
+                        }
+
+                        _session.Update(fourthYearLastResult);
+                        
+                        break;
+                    }
                 case false when fourthYearLastResult.LastResultStatus == ResultStatus.Available:
-                {
-                    fourthYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-                
-                    var fourthYearUsers = telegramUsers
-                        .Where(u => u.Year == Year.FourthYear)
-                        .ToList();
-                
-                    tasks.AddRange(fourthYearUsers
-                        .Select(fourthYearUser => _telegramBotClient
-                            .SendTextMessageAsync(
-                                fourthYearUser.ChatId,
-                                "🚨🚨🚨\n\n" +
-                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                "🚨🚨🚨",
-                                parseMode: ParseMode.Html)));
-                    
-                    stickerTasks.AddRange(fourthYearUsers
-                        .Select(fourthYearUser => _telegramBotClient
-                            .SendStickerAsync(
-                                fourthYearUser.ChatId,
-                                new InputFileId(TelegramStickers.WorriedDogSticker))));
-                
-                    _session.Update(fourthYearLastResult);
-                    break;
-                }
+                    {
+                        fourthYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
+
+                        var fourthYearUsers = telegramUsers
+                            .Where(u => u.Year == Year.FourthYear)
+                            .ToList();
+
+                        foreach(var fourthYearUser in fourthYearUsers)
+                        {
+                            try
+                            {
+                                await _telegramBotClient
+                                .SendTextMessageAsync(
+                                    fourthYearUser.ChatId,
+                                    "🚨🚨🚨\n\n" +
+                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                    "🚨🚨🚨",
+                                    parseMode: ParseMode.Html);
+                                
+                                await _telegramBotClient
+                                .SendStickerAsync(
+                                    fourthYearUser.ChatId,
+                                    new InputFileId(TelegramStickers.WorriedDogSticker));
+                            }
+                            catch (Exception e)
+                            {
+                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", fourthYearUser.ChatId);
+
+                                _session.Delete(fourthYearUser);
+
+                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", fourthYearUser.ChatId, fourthYearUser.FirstName);
+                            }
+                        }
+
+                        _session.Update(fourthYearLastResult);
+                        
+                        break;
+                    }
             }
         }
-        
+
         await _session.SaveChangesAsync();
 
-        try
-        { 
-            await Task.WhenAll(tasks);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unable to send academic years results notifications");
-        }
-
-        try
-        { 
-            await Task.WhenAll(stickerTasks);
-        }
-        catch (Exception e)
-        {
-            _logger.LogError(e, "Unable to send academic years results stickers");
-        }
-        
         _logger.LogInformation("Academic years results checked");
     }
 }
