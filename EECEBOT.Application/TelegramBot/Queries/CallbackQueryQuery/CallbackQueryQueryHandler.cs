@@ -32,8 +32,9 @@ public class CallbackQueryQueryHandler : IRequestHandler<CallbackQueryQuery>
 
     public async Task Handle(CallbackQueryQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("CallbackQuery received from chatId: {ChatId} with data: {Data}",
+        _logger.LogInformation("CallbackQuery received from chatId: {ChatId} and name {FirstName} with data: {Data}",
             request.CallbackQuery.Message?.Chat.Id,
+            request.CallbackQuery.From.FirstName,
             request.CallbackQuery.Data);
         
         var user = await _telegramUserRepository.GetByTelegramIdAsync(request.CallbackQuery.From.Id, cancellationToken);

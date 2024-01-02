@@ -29,8 +29,8 @@ internal sealed class MessageReceivedQueryHandler : IRequestHandler<MessageRecei
 
     public async Task Handle(MessageReceivedQuery request, CancellationToken cancellationToken)
     {
-        _logger.LogInformation("Receive message type: {MessageType}, ChatId = {ChatId}",
-            request.Message.Type, request.Message.Chat.Id);
+        _logger.LogInformation("Receive message type: {MessageType}, ChatId = {ChatId}, Name = {FirstName}, Message = {Message}",
+            request.Message.Type, request.Message.Chat.Id, request.Message.From?.FirstName, request.Message.Text);
 
         var user = await _telegramUserRepository.GetByChatIdAsync(request.Message.Chat.Id, cancellationToken);
         
