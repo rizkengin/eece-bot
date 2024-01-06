@@ -43,6 +43,8 @@ public class TelegramBotController : ControllerBase
         {
             try
             {
+                _logger.LogError(e, "Exception happened while handling Telegram webhook update");
+                
                 await _sender.Send(new TelegramQueryExceptionQuery(e));
             }
             catch (Exception ex)
