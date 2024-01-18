@@ -35,7 +35,7 @@ internal sealed class UpdateScheduleSubjectCommandHandler : IRequestHandler<Upda
         if (updateResult.IsError)
             return updateResult.Errors;
         
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

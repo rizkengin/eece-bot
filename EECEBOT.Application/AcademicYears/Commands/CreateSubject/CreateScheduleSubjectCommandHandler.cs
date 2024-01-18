@@ -35,7 +35,7 @@ internal sealed class CreateScheduleSubjectCommandHandler : IRequestHandler<Crea
         if (addResult.IsError)
             return addResult.Errors;
 
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

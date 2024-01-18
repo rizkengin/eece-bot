@@ -31,7 +31,7 @@ public class LogoutCommandHandler : IRequestHandler<LogoutCommand, ErrorOr<Logou
 
         var user = revokeRefreshTokenResult.Value;
         
-        _unitOfWork.Update(user);
+        await _unitOfWork.UpdateAsync(user, cancellationToken);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

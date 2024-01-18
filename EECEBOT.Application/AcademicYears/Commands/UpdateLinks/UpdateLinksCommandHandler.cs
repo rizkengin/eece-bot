@@ -32,7 +32,7 @@ internal sealed class UpdateLinksCommandHandler : IRequestHandler<UpdateLinksCom
         
         academicYear.UpdateLinks(links);
         
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

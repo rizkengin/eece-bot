@@ -2,6 +2,6 @@
 
 public interface IUnitOfWork
 {
-    void Update<T>(T entity) where T : class;
+    Task UpdateAsync<T>(T entity, CancellationToken cancellationToken = default);
     Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }

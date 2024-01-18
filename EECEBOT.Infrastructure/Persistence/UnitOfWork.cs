@@ -12,9 +12,11 @@ public class UnitOfWork : IUnitOfWork
         _documentSession = documentSession;
     }
 
-    public void Update<T>(T entity) where T : class
+    public Task UpdateAsync<T>(T entity, CancellationToken cancellationToken = default)
     {
-        _documentSession.Update(entity);
+        _documentSession.Update(new List<T> { entity });
+        
+        return Task.CompletedTask;
     }
 
     public async Task SaveChangesAsync(CancellationToken cancellationToken = default)

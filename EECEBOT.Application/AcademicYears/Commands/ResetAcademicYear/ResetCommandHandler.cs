@@ -30,7 +30,7 @@ internal sealed class ResetCommandHandler : IRequestHandler<ResetCommand, ErrorO
         
         academicYear.Reset();
         
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         

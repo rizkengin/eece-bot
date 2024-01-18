@@ -56,7 +56,7 @@ public static class DependencyInjection
             .WriteTo.Console()
             .CreateBootstrapLogger();
 
-        host.UseSerilog((context, services, configuration) => configuration
+        host.UseSerilog((context, services, loggerConfiguration) => loggerConfiguration
             .ReadFrom.Configuration(context.Configuration)
             .ReadFrom.Services(services)
             .MinimumLevel.Override("Microsoft", LogEventLevel.Information)

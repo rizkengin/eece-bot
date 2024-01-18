@@ -39,7 +39,7 @@ internal sealed class CreateScheduleCommandHandler : IRequestHandler<CreateSched
         
         academicYear.SetSchedule(scheduleResult.Value);
         
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
         
         await _unitOfWork.SaveChangesAsync(cancellationToken);
 

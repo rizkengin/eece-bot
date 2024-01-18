@@ -32,7 +32,7 @@ internal sealed class DeleteScheduleSubjectCommandHandler : IRequestHandler<Dele
         if (deleteResult.IsError)
             return deleteResult.Errors;
         
-        _unitOfWork.Update(academicYear);
+        await _unitOfWork.UpdateAsync(academicYear, cancellationToken);
 
         await _unitOfWork.SaveChangesAsync(cancellationToken);
         
