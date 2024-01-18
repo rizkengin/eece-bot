@@ -1,5 +1,4 @@
-﻿using EECEBOT.Application.Common.Persistence;
-using EECEBOT.Application.Common.Services;
+﻿using EECEBOT.Application.Common.Services;
 using EECEBOT.Domain.AcademicYearAggregate;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Interfaces;
@@ -29,6 +28,7 @@ public class BackgroundTasksService : IBackgroundTasksService
     private readonly IPublisher _publisher;
     private readonly ITelegramBotClient _telegramBotClient;
     private readonly ILogger<BackgroundTasksService> _logger;
+    private readonly string _resultsUrl;
 
     public BackgroundTasksService(
         IDocumentSession session,
@@ -40,6 +40,7 @@ public class BackgroundTasksService : IBackgroundTasksService
         _publisher = publisher;
         _telegramBotClient = telegramBotClient;
         _logger = logger;
+        _resultsUrl = "http://www.results.eng.cu.edu.eg/";
     }
 
     [DisableConcurrentExecution(20)]
@@ -236,7 +237,7 @@ public class BackgroundTasksService : IBackgroundTasksService
 
         var page = await browser.NewPageAsync();
 
-        await page.GotoAsync("http://www.results.eng.cu.edu.eg/");
+        await page.GotoAsync(_resultsUrl);
 
         var resultsHtmlPage = await page.ContentAsync();
 
