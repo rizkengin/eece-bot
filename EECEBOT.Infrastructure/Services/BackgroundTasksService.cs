@@ -658,7 +658,5 @@ public class BackgroundTasksService : IBackgroundTasksService
         }
 
         await _session.SaveChangesAsync();
-
-        _logger.LogInformation("Academic years results checked");
     }
 }
