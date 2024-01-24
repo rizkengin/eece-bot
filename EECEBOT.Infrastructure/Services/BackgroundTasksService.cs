@@ -46,8 +46,6 @@ public class BackgroundTasksService : IBackgroundTasksService
     [DisableConcurrentExecution(20)]
     public async Task ProcessOutboxMessagesAsync()
     {
-        _logger.LogInformation("Processing outbox messages");
-
         var messages = await _session
             .Query<OutboxMessage>()
             .Where(m => m.ProcessedOnUtc == null)
