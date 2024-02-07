@@ -292,371 +292,380 @@ public class BackgroundTasksService : IBackgroundTasksService
 
         var fourthYearLastResult = academicYearResults
             .SingleOrDefault(x => x.AcademicYear == Year.FourthYear);
-
-        if (firstYearLastResult is null)
+        
+        if (firstYearLastResult is null
+            || secondYearLastResult is null
+            || thirdYearLastResult is null
+            || fourthYearLastResult is null)
         {
-            firstYearLastResult = AcademicYearResult.Create(Year.FirstYear, isFirstYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
+            firstYearLastResult = AcademicYearResult.Create(Year.FirstYear, 
+                isFirstYearResultAvailable 
+                    ? ResultStatus.Available 
+                    : ResultStatus.UnAvailable);
+            
+            secondYearLastResult = AcademicYearResult.Create(Year.SecondYear,
+                isSecondYearResultAvailable
+                    ? ResultStatus.Available
+                    : ResultStatus.UnAvailable);
+            
+            thirdYearLastResult = AcademicYearResult.Create(Year.ThirdYear,
+                isThirdYearResultAvailable
+                    ? ResultStatus.Available
+                    : ResultStatus.UnAvailable);
+            
+            fourthYearLastResult = AcademicYearResult.Create(Year.FourthYear,
+                isFourthYearResultAvailable
+                    ? ResultStatus.Available
+                    : ResultStatus.UnAvailable);
 
-            _session.Store(firstYearLastResult);
+            _session.Store(firstYearLastResult,
+                secondYearLastResult,
+                thirdYearLastResult,
+                fourthYearLastResult);
+            
+            await _session.SaveChangesAsync();
+            
+            return;
         }
-        else
-        {
-            switch (isFirstYearResultAvailable)
+
+        List<Task> tasks = [];
+        
+        switch (isFirstYearResultAvailable)
             {
                 case true when firstYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
                     {
                         firstYearLastResult.LastResultStatus = ResultStatus.Available;
-
-                        var firstYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.FirstYear)
-                            .ToList();
-
-                        foreach (var firstYearUser in firstYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    firstYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    firstYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", firstYearUser.ChatId);
-
-                                _session.Delete(firstYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", firstYearUser.ChatId, firstYearUser.FirstName);
-                            }
-                        }
                         
                         _session.Update(firstYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.FirstYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نتيجة السنة الأولي ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
                         
                         break;
                     }
                 case false when firstYearLastResult.LastResultStatus == ResultStatus.Available:
                     {
                         firstYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-
-                        var firstYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.FirstYear)
-                            .ToList();
-
-                        foreach(var firstYearUser in firstYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    firstYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    firstYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.WorriedDogSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", firstYearUser.ChatId);
-
-                                _session.Delete(firstYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", firstYearUser.ChatId, firstYearUser.FirstName);
-                            }
-                        }
-
-                        _session.Update(firstYearLastResult);
                         
+                        _session.Update(firstYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.FirstYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.WorriedDogSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
+
                         break;
                     }
             }
-        }
 
-        if (secondYearLastResult is null)
-        {
-            secondYearLastResult = AcademicYearResult.Create(Year.SecondYear, isSecondYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-
-            _session.Store(secondYearLastResult);
-        }
-        else
-        {
-            switch (isSecondYearResultAvailable)
+        switch (isSecondYearResultAvailable)
             {
                 case true when secondYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
                     {
                         secondYearLastResult.LastResultStatus = ResultStatus.Available;
-
-                        var secondYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.SecondYear)
-                            .ToList();
-
-                        foreach(var secondYearUser in secondYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    secondYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    secondYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", secondYearUser.ChatId);
-
-                                _session.Delete(secondYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", secondYearUser.ChatId, secondYearUser.FirstName);
-                            }
-                        }
                         
                         _session.Update(secondYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.SecondYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نتيجة السنة الثانية ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
                         
                         break;
                     }
                 case false when secondYearLastResult.LastResultStatus == ResultStatus.Available:
                     {
                         secondYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-
-                        var secondYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.SecondYear)
-                            .ToList();
-
-                        foreach(var secondYearUser in secondYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    secondYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    secondYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.WorriedDogSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", secondYearUser.ChatId);
-
-                                _session.Delete(secondYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", secondYearUser.ChatId, secondYearUser.FirstName);
-                            }
-                        }
                         
                         _session.Update(secondYearLastResult);
-                        
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.SecondYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.WorriedDogSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
+
                         break;
                     }
             }
-        }
 
-        if (thirdYearLastResult is null)
-        {
-            thirdYearLastResult = AcademicYearResult.Create(Year.ThirdYear, isThirdYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-
-            _session.Store(thirdYearLastResult);
-        }
-        else
-        {
-            switch (isThirdYearResultAvailable)
+        switch (isThirdYearResultAvailable)
             {
                 case true when thirdYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
                     {
                         thirdYearLastResult.LastResultStatus = ResultStatus.Available;
-
-                        var thirdYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.ThirdYear)
-                            .ToList();
                         
-                        foreach(var thirdYearUser in thirdYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    thirdYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    thirdYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", thirdYearUser.ChatId);
-
-                                _session.Delete(thirdYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", thirdYearUser.ChatId, thirdYearUser.FirstName);
-                            }
-                        }
-
                         _session.Update(thirdYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.ThirdYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نتيجة السنة الثالثة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
                         
                         break;
                     }
                 case false when thirdYearLastResult.LastResultStatus == ResultStatus.Available:
                     {
                         thirdYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-
-                        var thirdYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.ThirdYear)
-                            .ToList();
-
-                        foreach(var thirdYearUser in thirdYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    thirdYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    thirdYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.WorriedDogSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", thirdYearUser.ChatId);
-
-                                _session.Delete(thirdYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", thirdYearUser.ChatId, thirdYearUser.FirstName);
-                            }
-                        }
                         
                         _session.Update(thirdYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.ThirdYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.WorriedDogSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
                         
                         break;
                     }
             }
-        }
 
-        if (fourthYearLastResult is null)
-        {
-            fourthYearLastResult = AcademicYearResult.Create(Year.FourthYear, isFourthYearResultAvailable ? ResultStatus.Available : ResultStatus.UnAvailable);
-
-            _session.Store(fourthYearLastResult);
-        }
-        else
-        {
-            switch (isFourthYearResultAvailable)
+        switch (isFourthYearResultAvailable)
             {
                 case true when fourthYearLastResult.LastResultStatus == ResultStatus.UnAvailable:
                     {
                         fourthYearLastResult.LastResultStatus = ResultStatus.Available;
-
-                        var fourthYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.FourthYear)
-                            .ToList();
-
-                        foreach(var fourthYearUser in fourthYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    fourthYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    fourthYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.AnnouncementFireSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", fourthYearUser.ChatId);
-
-                                _session.Delete(fourthYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", fourthYearUser.ChatId, fourthYearUser.FirstName);
-                            }
-                        }
-
-                        _session.Update(fourthYearLastResult);
                         
+                        _session.Update(fourthYearLastResult);
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.FourthYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نتيجة السنة الرابعة ظهرت. بالتوفيق للجميع. 💐</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+                                
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.AnnouncementFireSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", user.ChatId, user.FirstName);
+                                    }
+                                })));
+
                         break;
                     }
                 case false when fourthYearLastResult.LastResultStatus == ResultStatus.Available:
                     {
                         fourthYearLastResult.LastResultStatus = ResultStatus.UnAvailable;
-
-                        var fourthYearUsers = telegramUsers
-                            .Where(u => u.Year == Year.FourthYear)
-                            .ToList();
-
-                        foreach(var fourthYearUser in fourthYearUsers)
-                        {
-                            try
-                            {
-                                await _telegramBotClient
-                                .SendTextMessageAsync(
-                                    fourthYearUser.ChatId,
-                                    "🚨🚨🚨\n\n" +
-                                    "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
-                                    "🚨🚨🚨",
-                                    parseMode: ParseMode.Html);
-                                
-                                await _telegramBotClient
-                                .SendStickerAsync(
-                                    fourthYearUser.ChatId,
-                                    new InputFileId(TelegramStickers.WorriedDogSticker));
-                            }
-                            catch (Exception e)
-                            {
-                                _logger.LogError(e, "Unable to send academic year result notification to user {ChatId}", fourthYearUser.ChatId);
-
-                                _session.Delete(fourthYearUser);
-
-                                _logger.LogInformation("User with Id {ChatId} and Name {UserName} has been removed from the database", fourthYearUser.ChatId, fourthYearUser.FirstName);
-                            }
-                        }
-
+                        
                         _session.Update(fourthYearLastResult);
+                        
+                        await _session.SaveChangesAsync();
+
+                        telegramUsers
+                            .Where(u => u.Year == Year.FourthYear)
+                            .ToList()
+                            .ForEach(user => tasks.Add(
+                                Task.Run(async () =>
+                                {
+                                    try
+                                    {
+                                        await _telegramBotClient
+                                            .SendTextMessageAsync(
+                                                user.ChatId,
+                                                "🚨🚨🚨\n\n" +
+                                                "<b>نصبوا الصوان خلاص. استعد لظهور النتيجة 😢</b>\n\n" +
+                                                "🚨🚨🚨",
+                                                parseMode: ParseMode.Html);
+
+                                        await _telegramBotClient
+                                            .SendStickerAsync(
+                                                user.ChatId,
+                                                new InputFileId(TelegramStickers.WorriedDogSticker));
+                                    }
+                                    catch (Exception e)
+                                    {
+                                        _logger.LogError(e,
+                                            "Unable to send academic year result notification to user {ChatId}",
+                                            user.ChatId);
+
+                                        _session.Delete(user);
+
+                                        _logger.LogInformation(
+                                            "User with Id {ChatId} and Name {UserName} has been removed from the database",
+                                            user.ChatId, user.FirstName);
+                                    }
+                                })));
                         
                         break;
                     }
             }
-        }
-
+        
         await _session.SaveChangesAsync();
+        
+        await Task.WhenAll(tasks);
     }
 }
