@@ -219,7 +219,7 @@ public class BackgroundTasksService : IBackgroundTasksService
         await _session.SaveChangesAsync();
     }
 
-    [DisableConcurrentExecution(20)]
+    [DisableConcurrentExecution(60)]
     [AutomaticRetry(OnAttemptsExceeded = AttemptsExceededAction.Delete)]
     public async Task CheckForAcademicYearsResultsAsync()
     {
