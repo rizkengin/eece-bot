@@ -253,25 +253,25 @@ public class BackgroundTasksService : IBackgroundTasksService
             .ChildNodes
             .First(x => x.Id == "td1")
             .ChildNodes
-            .Count > 0;
+            .FirstOrDefault(x => x.Name == "a") is not null;
 
         var isSecondYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td2")
             .ChildNodes
-            .Count > 0;
+            .FirstOrDefault(x => x.Name == "a") is not null;
 
         var isThirdYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td3")
             .ChildNodes
-            .Count > 0;
+            .FirstOrDefault(x => x.Name == "a") is not null;
 
         var isFourthYearResultAvailable = table
             .ChildNodes
             .First(x => x.Id == "td4")
             .ChildNodes
-            .Count > 0;
+            .FirstOrDefault(x => x.Name == "a") is not null;
 
         var academicYearResults = await _session
             .Query<AcademicYearResult>()
