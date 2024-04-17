@@ -116,7 +116,7 @@ public static class DependencyInjection
             {
                 options.Connection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
 
-                options.UseDefaultSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
+                options.UseNewtonsoftForSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
                     enumStorage: EnumStorage.AsString);
 
                 options.Schema.For<TelegramUser>()
