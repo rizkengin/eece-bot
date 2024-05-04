@@ -14,7 +14,7 @@ public class UnitOfWork : IUnitOfWork
 
     public Task UpdateAsync<T>(T entity, CancellationToken cancellationToken = default)
     {
-        _documentSession.Update(new List<T> { entity });
+        _documentSession.Update(entity);
         
         return Task.CompletedTask;
     }

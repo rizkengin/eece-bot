@@ -11,9 +11,9 @@ namespace EECEBOT.Domain.AcademicYearAggregate;
 
 public class AcademicYear : AggregateRoot
 {
-    private readonly List<Link> _links = new();
-    private readonly List<Exam> _exams = new();
-    private readonly List<Deadline> _deadlines = new();
+    private readonly List<Link> _links = [];
+    private readonly List<Exam> _exams = [];
+    private readonly List<Deadline> _deadlines = [];
 
     private AcademicYear(
         Guid id,
