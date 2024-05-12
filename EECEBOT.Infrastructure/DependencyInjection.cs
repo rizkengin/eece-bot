@@ -41,7 +41,7 @@ public static class DependencyInjection
             config.UseRecommendedSerializerSettings();
             config.UsePostgreSqlStorage(options =>
             {
-                options.UseNpgsqlConnection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
+                options.UseNpgsqlConnection(configuration["DatabaseConnectionString"]!);
             });
             AddBackgroundJobs();
         });
@@ -114,7 +114,7 @@ public static class DependencyInjection
     {
         services.AddMarten(options =>
             {
-                options.Connection(configuration[configuration["ConnectionStrings:Npgsql"]!]!);
+                options.Connection(configuration["DatabaseConnectionString"]!);
 
                 options.UseNewtonsoftForSerialization(nonPublicMembersStorage: NonPublicMembersStorage.All,
                     enumStorage: EnumStorage.AsString);

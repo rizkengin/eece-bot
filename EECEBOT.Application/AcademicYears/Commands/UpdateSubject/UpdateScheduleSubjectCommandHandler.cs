@@ -1,5 +1,6 @@
 ﻿using EECEBOT.Application.AcademicYears.ResultModels.ScheduleResultModels;
 using EECEBOT.Application.Common.Persistence;
+using EECEBOT.Domain.AcademicYearAggregate;
 using EECEBOT.Domain.AcademicYearAggregate.Enums;
 using EECEBOT.Domain.Common.Errors;
 using ErrorOr;

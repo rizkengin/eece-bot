@@ -1,5 +1,4 @@
 using EECEBOT.API;
-using EECEBOT.API.Common;
 using EECEBOT.Application;
 using EECEBOT.Infrastructure;
 using Hangfire;
@@ -8,15 +7,16 @@ using Serilog;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+if (!builder.Environment.IsDevelopment())
+    builder.Services.AddAzureVaultConfiguration(builder.Configuration);
+
 builder.Services
-       .AddAzureVaultConfiguration(builder.Configuration)
        .AddPresentation(builder.Host, builder.Configuration, builder.Environment)
        .AddApplication(builder.Configuration, builder.Environment.IsDevelopment())
        .AddInfrastructure(builder.Configuration);
 
 var app = builder.Build();
-
-ApplicationStartChecks.Check(app.Services, app.Configuration);
 
 app.UseHangfireDashboard("/hangfire", new DashboardOptions
 {
@@ -38,7 +38,7 @@ app.UseHangfireDashboard("/hangfire", new DashboardOptions
 
 app.UseSerilogRequestLogging();
 
-if (app.Environment.IsDevelopment() || app.Environment.IsStaging())
+if (!app.Environment.IsProduction())
 {
     app.UseSwagger();
     app.UseSwaggerUI();

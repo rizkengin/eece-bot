@@ -7,16 +7,28 @@ using EECEBOT.Domain.Common.Enums;
 using EECEBOT.Domain.UserAggregate;
 using Marten;
 
-namespace EECEBOT.API.Common;
+namespace EECEBOT.API.StartupTasks;
 
-public static class ApplicationStartChecks
+internal sealed class ApplicationStartupCheck : BackgroundService
 {
-    public static void Check(IServiceProvider services, IConfiguration configuration)
+    private readonly IServiceProvider _serviceProvider;
+    private readonly IConfiguration _configuration;
+
+    public ApplicationStartupCheck(
+        IServiceProvider serviceProvider, 
+        IConfiguration configuration)
     {
-        CheckTimeService(services);
-        SeedAcademicYears(services);
-        SeedAcademicYearRepresentatives(services, configuration);
+        _serviceProvider = serviceProvider;
+        _configuration = configuration;
     }
+
+    protected override async Task ExecuteAsync(CancellationToken stoppingToken)
+    {
+        CheckTimeService(_serviceProvider);
+        SeedAcademicYears(_serviceProvider);
+        SeedAcademicYearRepresentatives(_serviceProvider, _configuration);
+    }
+    
     private static void CheckTimeService(IServiceProvider serviceProvider)
     {
         using var scope = serviceProvider.CreateScope();
@@ -63,7 +75,7 @@ public static class ApplicationStartChecks
             .Where(u => u.Role != Role.SuperAdmin)
             .ToList();
 
-        if (existingAcademicYearRepresentatives.Any()) return;
+        if (existingAcademicYearRepresentatives.Count != 0) return;
 
         var passwordHasher = scope.ServiceProvider.GetRequiredService<IPasswordHasher>();
 

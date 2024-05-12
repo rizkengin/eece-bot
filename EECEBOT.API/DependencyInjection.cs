@@ -1,5 +1,6 @@
 ﻿using EECEBOT.API.Common.Errors;
 using EECEBOT.API.Common.Mapping;
+using EECEBOT.API.StartupTasks;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 using Serilog;
 using Serilog.Events;
@@ -27,6 +28,8 @@ public static class DependencyInjection
         AddLogging(host, configuration, environment);
 
         services.AddSingleton<ProblemDetailsFactory, EecebotProblemDetailsFactory>();
+
+        services.AddHostedService<ApplicationStartupCheck>();
 
         return services;
     }

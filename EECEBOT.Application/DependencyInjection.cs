@@ -25,9 +25,9 @@ public static class DependencyInjection
     public static IServiceCollection AddApplication(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
     {
         services
-            .AddTelegramBotServices(configuration, isDevelopment)
             .AddMediatR(config => config.RegisterServicesFromAssembly(Assembly.GetExecutingAssembly()))
-            .AddAuth(configuration);
+            .AddAuth(configuration)
+            .AddTelegramBotServices(configuration);
         
         services.AddScoped(typeof(IPipelineBehavior<,>), typeof(ValidationBehavior<,>));
 
@@ -36,7 +36,7 @@ public static class DependencyInjection
         return services;
     }
     
-    private static void AddAuth(this IServiceCollection services, IConfiguration configuration)
+    private static IServiceCollection AddAuth(this IServiceCollection services, IConfiguration configuration)
     {
         var jwtSettings = new JwtSettings
         {
@@ -49,25 +49,26 @@ public static class DependencyInjection
         services.AddScoped<IPasswordHasher, PasswordHasher>();
         services.AddScoped<IIdentityService, IdentityService>();
 
-        services.AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
-                .AddJwtBearer(options =>
+        services
+            .AddAuthentication(defaultScheme: JwtBearerDefaults.AuthenticationScheme)
+            .AddJwtBearer(options =>
+            {
+                options.TokenValidationParameters = new TokenValidationParameters
                 {
-                    options.TokenValidationParameters = new TokenValidationParameters
-                    {
-                        ValidateIssuer = true,
-                        ValidIssuer = jwtSettings.Issuer,
-                        ValidateAudience = true,
-                        ValidAudience = jwtSettings.Audience,
-                        ValidateIssuerSigningKey = true,
-                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
-                        ValidateLifetime = true,
-                        ClockSkew = TimeSpan.Zero
-                    };
-                });
+                    ValidateIssuer = true,
+                    ValidIssuer = jwtSettings.Issuer,
+                    ValidateAudience = true,
+                    ValidAudience = jwtSettings.Audience,
+                    ValidateIssuerSigningKey = true,
+                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSettings.Secret)),
+                    ValidateLifetime = true,
+                    ClockSkew = TimeSpan.Zero
+                };
+            });
 
-        services.AddAuthorization(options =>
-        {
-            options.AddPolicy(Policies.AcademicYearRepresentatives, policy =>
+        services
+            .AddAuthorizationBuilder()
+            .AddPolicy(Policies.AcademicYearRepresentatives, policy =>
             {
                 policy.RequireAuthenticatedUser();
                 
@@ -101,18 +102,12 @@ public static class DependencyInjection
                     return false;
                 });
             });
-        });
-    }
-    
-    private static IServiceCollection AddTelegramBotServices(this IServiceCollection services, IConfiguration configuration, bool isDevelopment)
-    {
-        services.AddHttpClient("telegram-bot")
-            .AddTypedClient<ITelegramBotClient>(httpclient =>
-            {
-                var botToken = isDevelopment ? configuration["TelegramDevelopmentBotToken"]! : configuration["TelegramProductionBotToken"]!;
-                return new TelegramBotClient(botToken, httpclient);
-            });
-
+        
         return services;
     }
+    
+    private static void AddTelegramBotServices(this IServiceCollection services, IConfiguration configuration) =>
+        services.AddHttpClient("telegram-bot")
+            .AddTypedClient<ITelegramBotClient>(httpclient => 
+                new TelegramBotClient(configuration["BotToken"]!, httpclient));
 }
