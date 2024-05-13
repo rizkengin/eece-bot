@@ -150,12 +150,9 @@ public static class DependencyInjection
         return services;
     }
 
-    public static IServiceCollection AddAzureVaultConfiguration(this IServiceCollection services, ConfigurationManager configuration)
-    {
-        var keyVaultUrl = new Uri(configuration.GetValue<string>("eece_bot_azure_key_vault_url")!);
-        var azureCredentials = new DefaultAzureCredential();
-        configuration.AddAzureKeyVault(keyVaultUrl, azureCredentials);
-
-        return services;
-    }
+    public static void AddAzureVaultConfiguration(this IServiceCollection services, ConfigurationManager configuration) => 
+        configuration.
+            AddAzureKeyVault(
+                new Uri(configuration["VaultUrl"]!), 
+                new DefaultAzureCredential());
 }
